@@ -1,0 +1,11 @@
+export const TipoUsuario = {
+  ALUNO: "ALUNO",
+  PROFESSOR: "PROFESSOR",
+  BIBLIOTECARIA: "BIBLIOTECARIA",
+  ADMINISTRADOR: "ADMINISTRADOR",
+};
+
+export const Status = {
+  ATIVO: "ATIVO",
+  INATIVO: "INATIVO",
+};
