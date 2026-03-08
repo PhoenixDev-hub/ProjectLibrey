@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+enum TipoUsuario {
+  ALUNO
+  PROFESSOR
+  BIBLIOTECARIA
+  ADMINISTRADOR
+}
+
+enum Status {
+  ATIVO
+  INATIVO
+}
+
+model Usuario {
+  id                   Int          @id @default(autoincrement())
+  nome                 String
+  sobrenome            String
+  email                String       @unique
+  senha                String
+  anoSala              String?
+  tipoUsuario          TipoUsuario
+  anoInicioEnsinoMedio Int
+  telefone             String?
+  status               Status       @default(ATIVO)
+  dataCadastro         DateTime     @default(now())
+  refreshTokens        RefreshToken[]
+  passwordResets       PasswordReset[]
+
+  @@map("usuarios")
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  usuarioId Int
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  usuarioId Int
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@map("password_resets")
+}
