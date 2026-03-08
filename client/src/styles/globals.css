@@ -1,107 +1,107 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Animações */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@layer utilities {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
-  to {
-    opacity: 1;
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-}
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
   }
-}
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .animate-slideDown {
+    animation: slideDown 0.5s ease-out forwards;
   }
-}
 
-@keyframes shake {
-  0%, 100% {
-    transform: translateX(0);
+  .animate-slideUp {
+    animation: slideUp 0.5s ease-out forwards;
   }
-  10%, 30%, 50%, 70%, 90% {
-    transform: translateX(-5px);
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
   }
-  20%, 40%, 60%, 80% {
-    transform: translateX(5px);
+
+  .animation-delay-200 {
+    animation-delay: 200ms;
   }
-}
 
-/* Classes de animação */
-.animate-fadeIn {
-  animation: fadeIn 0.6s ease-out forwards;
-}
+  .animation-delay-300 {
+    animation-delay: 300ms;
+  }
 
-.animate-slideDown {
-  animation: slideDown 0.6s ease-out forwards;
-}
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
 
-.animate-slideUp {
-  animation: slideUp 0.6s ease-out forwards;
-}
+  .animation-delay-450 {
+    animation-delay: 450ms;
+  }
 
-.animate-shake {
-  animation: shake 0.5s ease-in-out forwards;
-}
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
 
-/* Delays */
-.animation-delay-100 {
-  animation-delay: 100ms;
-}
+  .animation-delay-550 {
+    animation-delay: 550ms;
+  }
 
-.animation-delay-200 {
-  animation-delay: 200ms;
-}
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
 
-.animation-delay-300 {
-  animation-delay: 300ms;
-}
+  .animation-delay-650 {
+    animation-delay: 650ms;
+  }
 
-.animation-delay-400 {
-  animation-delay: 400ms;
-}
+  .animation-delay-700 {
+    animation-delay: 700ms;
+  }
 
-.animation-delay-500 {
-  animation-delay: 500ms;
-}
+  .animation-delay-750 {
+    animation-delay: 750ms;
+  }
 
-.animation-delay-600 {
-  animation-delay: 600ms;
-}
+  .animation-delay-800 {
+    animation-delay: 800ms;
+  }
 
-.animation-delay-700 {
-  animation-delay: 700ms;
-}
-
-.animation-delay-800 {
-  animation-delay: 800ms;
-}
-
-.animation-delay-900 {
-  animation-delay: 900ms;
-}
-
-.animation-delay-1000 {
-  animation-delay: 1000ms;
-}
-
-.animation-delay-1100 {
-  animation-delay: 1100ms;
+  .animation-delay-850 {
+    animation-delay: 850ms;
+  }
 }

@@ -6,8 +6,12 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-2xl font-bold">
-        Bem-vindo, {user?.name}
+        Bem-vindo!
       </h1>
+
+      <p className="mt-2">
+        Perfil: {user?.tipoUsuario}
+      </p>
 
       <button
         onClick={logout}

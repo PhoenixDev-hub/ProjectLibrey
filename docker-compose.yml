@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: project-library-db
+    environment:
+      POSTGRES_DB: project_library
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - project-library-network
+
+  # API Backend
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: project-library-api
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/project_library
+      JWT_SECRET: ${JWT_SECRET:-sua-chave-super-secreta}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3333
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://localhost:3000}
+    ports:
+      - "3333:3333"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - project-library-network
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+  # Cliente Frontend
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: project-library-client
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3333}
+    ports:
+      - "5173:3000"
+    depends_on:
+      - server
+    networks:
+      - project-library-network
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+
+networks:
+  project-library-network:
+    driver: bridge

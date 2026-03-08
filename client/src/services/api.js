@@ -1,7 +1,9 @@
 import axios from "axios";
 
+const apiURL = import.meta.env.VITE_API_URL || "http://localhost:3333";
+
 export const api = axios.create({
-    baseURL: "http://localhost:3333",
+    baseURL: apiURL,
 });
 
 api.interceptors.request.use((config) => {
@@ -13,3 +15,14 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("token")
+      window.location.replace("/")
+    }
+    return Promise.reject(error)
+  }
+)
