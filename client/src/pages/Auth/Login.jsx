@@ -1,11 +1,25 @@
 import { AlertCircle, Loader2, Lock, LogIn, Mail, User } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user, loadingAuth } = useAuth();
   const navigate = useNavigate();
+
+  // Se já está autenticado (ex.: recarregou a página), redireciona para o dashboard
+  if (!loadingAuth && user?.authenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Enquanto verifica o token no localStorage, mostra loading
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <Loader2 className="w-8 h-8 text-[#16a34a] animate-spin" />
+      </div>
+    );
+  }
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

@@ -60,3 +60,84 @@ model PasswordReset {
 
   @@map("password_resets")
 }
+
+model Livro {
+  id            String   @id @default(uuid())
+  titulo        String
+  autor         String
+  editora       String?
+  anoPublicacao Int?
+  isbn          String?
+  area          AreaConhecimento
+  sinopse       String?
+
+  exemplares    Exemplar[]
+
+  createdAt     DateTime @default(now())
+
+  @@map("livros")
+}
+
+model Exemplar {
+  id        String   @id @default(uuid())
+  livroId   String
+  livro     Livro    @relation(fields: [livroId], references: [id])
+
+  codigo    String   @unique
+  status    StatusExemplar @default(DISPONIVEL)
+
+  reservas  Reserva[]
+
+  createdAt DateTime @default(now())
+
+  @@map("exemplares")
+}
+
+model Reserva {
+  id           String   @id @default(uuid())
+
+  usuarioId    Int
+  exemplarId   String
+
+  status       StatusReserva @default(PENDENTE)
+
+  aprovadoPor  Int?
+  aprovadoEm   DateTime?
+
+  retiradoEm   DateTime?
+  devolvidoEm  DateTime?
+
+  createdAt    DateTime @default(now())
+
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  exemplar  Exemplar @relation(fields: [exemplarId], references: [id])
+
+  @@map("reservas")
+}
+
+enum AreaConhecimento {
+  LINGUAGENS
+  MATEMATICA
+  CIENCIAS_NATUREZA
+  CIENCIAS_HUMANAS
+  LITERATURA
+  TECNOLOGIA
+  OUTRA
+}
+
+enum StatusExemplar {
+  DISPONIVEL
+  RESERVADO
+  EMPRESTADO
+  MANUTENCAO
+}
+
+enum StatusReserva {
+  PENDENTE
+  APROVADO
+  REJEITADO
+  RETIRADO
+  DEVOLVIDO
+  CANCELADO
+  EXPIRADO
+}
