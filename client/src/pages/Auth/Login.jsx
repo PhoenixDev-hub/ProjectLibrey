@@ -7,6 +7,12 @@ export default function Login() {
   const { login, user, loadingAuth } = useAuth();
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
+
   // Se já está autenticado (ex.: recarregou a página), redireciona para o dashboard
   if (!loadingAuth && user?.authenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -20,12 +26,6 @@ export default function Login() {
       </div>
     );
   }
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [validationErrors, setValidationErrors] = useState({});
 
 
   const validateEmail = (value) => {

@@ -7,33 +7,23 @@ datasource db {
   provider = "postgresql"
 }
 
-
-enum TipoUsuario {
-  ALUNO
-  PROFESSOR
-  BIBLIOTECARIA
-  ADMINISTRADOR
-}
-
-enum Status {
-  ATIVO
-  INATIVO
-}
-
 model Usuario {
   id                   Int          @id @default(autoincrement())
   nome                 String
   sobrenome            String
   email                String       @unique
   senha                String
-  anoSala              String?
-  tipoUsuario          TipoUsuario
-  anoInicioEnsinoMedio Int
+  anoSala              String?      @map("ano_sala")
+  tipoUsuario          String       @map("tipo_usuario")
+  anoInicioEnsinoMedio Int          @map("ano_inicio_ensino_medio")
   telefone             String?
-  status               Status       @default(ATIVO)
-  dataCadastro         DateTime     @default(now())
+  status               String       @default("ATIVO")
+  dataCadastro         DateTime     @default(now()) @map("data_cadastro")
   refreshTokens        RefreshToken[]
   passwordResets       PasswordReset[]
+  reservas          Reserva[]
+  reservasAprovadas Reserva[] @relation("ReservasAprovadas")
+  notificacoes      Notificacao[]
 
   @@map("usuarios")
 }
@@ -41,10 +31,10 @@ model Usuario {
 model RefreshToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
-  usuarioId Int
+  usuarioId Int       @map("usuario_id")
   usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime  @default(now())
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   @@map("refresh_tokens")
 }
@@ -52,11 +42,11 @@ model RefreshToken {
 model PasswordReset {
   id        Int       @id @default(autoincrement())
   token     String    @unique
-  usuarioId Int
+  usuarioId Int       @map("usuario_id")
   usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
 
   @@map("password_resets")
 }
@@ -66,29 +56,29 @@ model Livro {
   titulo        String
   autor         String
   editora       String?
-  anoPublicacao Int?
+  anoPublicacao Int?     @map("ano_publicacao")
   isbn          String?
-  area          AreaConhecimento
+  area          String
   sinopse       String?
 
   exemplares    Exemplar[]
 
-  createdAt     DateTime @default(now())
+  createdAt     DateTime @default(now()) @map("created_at")
 
   @@map("livros")
 }
 
 model Exemplar {
   id        String   @id @default(uuid())
-  livroId   String
+  livroId   String   @map("livro_id")
   livro     Livro    @relation(fields: [livroId], references: [id])
 
   codigo    String   @unique
-  status    StatusExemplar @default(DISPONIVEL)
+  status    String   @default("DISPONIVEL")
 
   reservas  Reserva[]
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("exemplares")
 }
@@ -96,48 +86,40 @@ model Exemplar {
 model Reserva {
   id           String   @id @default(uuid())
 
-  usuarioId    Int
-  exemplarId   String
+  usuarioId    Int      @map("usuario_id")
+  exemplarId   String   @map("exemplar_id")
 
-  status       StatusReserva @default(PENDENTE)
+  status       String   @default("PENDENTE")
 
-  aprovadoPor  Int?
-  aprovadoEm   DateTime?
+  aprovadoPor  Int?     @map("aprovado_por")
+  aprovadoEm   DateTime? @map("aprovado_em")
 
-  retiradoEm   DateTime?
-  devolvidoEm  DateTime?
+  retiradoEm   DateTime? @map("retirado_em")
+  prazoDevol   DateTime? @map("prazo_devolucao")
+  devolvidoEm  DateTime? @map("devolvido_em")
 
-  createdAt    DateTime @default(now())
+  createdAt    DateTime @default(now()) @map("created_at")
 
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  aprovador Usuario? @relation("ReservasAprovadas", fields: [aprovadoPor], references: [id])
   exemplar  Exemplar @relation(fields: [exemplarId], references: [id])
+  notificacoes Notificacao[]
 
   @@map("reservas")
 }
 
-enum AreaConhecimento {
-  LINGUAGENS
-  MATEMATICA
-  CIENCIAS_NATUREZA
-  CIENCIAS_HUMANAS
-  LITERATURA
-  TECNOLOGIA
-  OUTRA
-}
+model Notificacao {
+  id    String    @id @default(uuid())
+  usuarioId Int     @map("usuario_id")
+  reservaId String? @map("reserva_id")
+  tipo      String
+  titulo    String
+  mensagem  String
+  lida    Boolean   @default(false)
+  createdAt   DateTime    @default(now()) @map("created_at")
 
-enum StatusExemplar {
-  DISPONIVEL
-  RESERVADO
-  EMPRESTADO
-  MANUTENCAO
-}
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+  reserva   Reserva? @relation(fields: [reservaId], references: [id])
 
-enum StatusReserva {
-  PENDENTE
-  APROVADO
-  REJEITADO
-  RETIRADO
-  DEVOLVIDO
-  CANCELADO
-  EXPIRADO
+  @@map("notificacoes")
 }
