@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 
-async function criarReservas(usuariosId, livroId) {
+async function criarReservas(usuarioId, livroId) {
     const exemplar = await prisma.exemplar.findFirst({
         where: {
             livroId,
@@ -17,7 +17,7 @@ async function criarReservas(usuariosId, livroId) {
 
     const reservaExistente = await prisma.reserva.findFirst({
         where: {
-            usuariosId,
+            usuarioId,
             exemplar: {
                 livroId
             },
@@ -32,7 +32,7 @@ async function criarReservas(usuariosId, livroId) {
     const resultado = await prisma.$transaction(async (tx) => {
         const reserva = await tx.reserva.create({
             data: {
-                usuariosId,
+                usuarioId,
                 exemplarId: exemplar.id,
                 status: "PENDENTE"
             },

@@ -295,7 +295,7 @@ MIT
 
 ## 👤 Autor
 
-Seu Nome - Sistema de Biblioteca Acadêmica
+PhoenixDev - Sistema de Biblioteca Acadêmica
 
 ---
 
