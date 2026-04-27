@@ -26,12 +26,12 @@ export async function loginCadastro(req, res, next) {
 
 export async function getCurrentUser(req, res, next) {
   try {
-    const usuarioId = req.user.id;
+    const usuarioId = req.usuario.id;
     const usuario = await getCurrentUserService(usuarioId);
 
     return res.json(usuario);
   } catch (error) {
-    logger.error('Erro ao obter dados do usuário', { usuarioId: req.user.id, error: error.message });
+    logger.error('Erro ao obter dados do usuário', { usuarioId: req.usuario.id, error: error.message });
     next(error);
   }
 }

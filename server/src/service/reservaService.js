@@ -120,7 +120,7 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
 
             await tx.notificacao.create({
                 data: {
-                    usuariosId: reserva.usuariosId,
+                    usuarioId: reserva.usuarioId,
                     reservaId: reserva.id,
                     tipo: "RESERVA_APROVADA",
                     titulo: `Reserva aprovada para ${reserva.exemplar.livro.titulo}`,
@@ -152,7 +152,7 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
 
             await tx.notificacao.create({
                 data: {
-                    usuariosId: reserva.usuariosId,
+                    usuarioId: reserva.usuarioId,
                     reservaId: reserva.id,
                     tipo: "RESERVA_REJEITADA",
                     titulo: `Reserva rejeitada para ${reserva.exemplar.livro.titulo}`,
@@ -203,7 +203,7 @@ async function registrarRetirada(reservaId) {
 
         await tx.notificacao.create({
             data: {
-                usuariosId: reserva.usuariosId,
+                usuarioId: reserva.usuarioId,
                 reservaId: reserva.id,
                 tipo: "RESERVA_RETIRADA",
                 titulo: `Reserva retirada para ${reserva.exemplar.livro.titulo}`,
