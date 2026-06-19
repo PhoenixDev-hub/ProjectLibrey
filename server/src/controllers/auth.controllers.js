@@ -1,5 +1,6 @@
 import { loginSchema } from "../schemas/auth.schemas.js";
 import { getCurrentUserService, loginService } from "../service/auth.service.js";
+import { atualizarUsuario } from "../service/usuario.service.js";
 import logger from "../utils/logger.js";
 
 export async function loginCadastro(req, res, next) {
@@ -35,3 +36,19 @@ export async function getCurrentUser(req, res, next) {
     next(error);
   }
 }
+
+export async function updateCurrentUser(req, res, next) {
+  try {
+    const usuarioId = req.usuario.id;
+    const { nome, sobrenome, email, telefone } = req.body;
+
+    const usuario = await atualizarUsuario(usuarioId, { nome, sobrenome, email, telefone });
+
+    logger.info(`Perfil do usuário atualizado: ${usuarioId}`);
+    return res.json(usuario);
+  } catch (error) {
+    logger.error('Erro ao atualizar dados do usuário', { usuarioId: req.usuario.id, error: error.message });
+    next(error);
+  }
+}
+

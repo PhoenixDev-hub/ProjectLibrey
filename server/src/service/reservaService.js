@@ -68,7 +68,7 @@ async function criarReservas(usuarioId, livroId) {
 
         await tx.notificacao.createMany({
             data: bibliotecarias.map((bib) => ({
-                usuariosId: bib.id,
+                usuarioId: bib.id,
                 reservaId: reserva.id,
                 tipo: "NOVA_RESERVA",
                 titulo: `Nova reserva para ${reserva.exemplar.livro.titulo}`,

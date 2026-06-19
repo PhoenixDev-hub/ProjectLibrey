@@ -1,4 +1,3 @@
-import { jwtDecode } from "jwt-decode";
 import { createContext, useEffect, useState } from "react";
 import { api } from "../services/api";
 import { loginRequest, registerRequest } from "../services/auth.service.js";
@@ -12,39 +11,41 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-
-        setUser({
-          id: decoded.id,
-          tipoUsuario: decoded.tipoUsuario,
-          authenticated: true,
-        });
-
-        api.defaults.headers.Authorization = `Bearer ${token}`;
-      } catch (error) {
-        localStorage.removeItem("token");
-        setUser(null);
-      }
-    } else {
+    if (!token) {
       setUser(null);
+      setLoadingAuth(false);
+      return;
     }
 
-    setLoadingAuth(false);
+    api.defaults.headers.Authorization = `Bearer ${token}`;
+
+    async function loadUser() {
+      try {
+        const response = await api.get("/me");
+        setUser({
+          ...response.data,
+          authenticated: true,
+        });
+      } catch (error) {
+        localStorage.removeItem("token");
+        delete api.defaults.headers.Authorization;
+        setUser(null);
+      } finally {
+        setLoadingAuth(false);
+      }
+    }
+
+    loadUser();
   }, []);
 
   async function login({ email, password }) {
     const data = await loginRequest({ email, password });
 
-    const decoded = jwtDecode(data.token);
-
     localStorage.setItem("token", data.token);
     api.defaults.headers.Authorization = `Bearer ${data.token}`;
 
     setUser({
-      id: decoded.id,
-      tipoUsuario: decoded.tipoUsuario,
+      ...data.usuario,
       authenticated: true,
     });
 
@@ -54,14 +55,11 @@ export function AuthProvider({ children }) {
   async function register(formData) {
     const data = await registerRequest(formData);
 
-    const decoded = jwtDecode(data.token);
-
     localStorage.setItem("token", data.token);
     api.defaults.headers.Authorization = `Bearer ${data.token}`;
 
     setUser({
-      id: decoded.id,
-      tipoUsuario: decoded.tipoUsuario,
+      ...data.usuario,
       authenticated: true,
     });
 
@@ -78,6 +76,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider
       value={{
         user,
+        setUser,
         loadingAuth,
         login,
         register,

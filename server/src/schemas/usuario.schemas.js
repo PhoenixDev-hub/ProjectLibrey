@@ -10,10 +10,12 @@ const dominiosPublicos = [
   "aluno.ce.gov.br",
 ];
 
-const dominiosGovernoAdmin = [
-  "prof.ce.gov.br",
-  "admin.admin",
-];
+const isInstitucional = (dominio) => {
+  return (
+    dominio === "admin.admin" ||
+    (typeof dominio === "string" && dominio.endsWith(".ce.gov.br") && dominio !== "aluno.ce.gov.br")
+  );
+};
 
 export const createUsuarioSchema = z
   .object({
@@ -55,7 +57,7 @@ export const createUsuarioSchema = z
     telefone: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    const dominioEmail = data.email.split("@")[1]?.toLowerCase();
+    const dominioEmail = data.email.split("@")[1]?.toLowerCase() || "";
 
     if (data.tipoUsuario === "ALUNO") {
       if (!data.anoSala) {
@@ -76,7 +78,7 @@ export const createUsuarioSchema = z
     if (
       ["PROFESSOR", "BIBLIOTECARIA", "ADMINISTRADOR"].includes(data.tipoUsuario)
     ) {
-      if (!dominiosGovernoAdmin.includes(dominioEmail)) {
+      if (!isInstitucional(dominioEmail)) {
         ctx.addIssue({
           path: ["email"],
           message: "Este tipo de usuário deve usar email institucional",

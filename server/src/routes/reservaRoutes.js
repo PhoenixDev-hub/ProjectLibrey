@@ -1,4 +1,4 @@
-// src/routes/reservaRoutes.js
+
 import express from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { autenticar } from '../middlewares/auth.middleware.js'
@@ -6,7 +6,7 @@ import { soBibliotecaria } from '../middlewares/role.middleware.js'
 import { atualizarStatusReserva, criarReservas, registrarDevolucao, registrarRetirada } from '../service/reservaService.js'
 const router = express.Router()
 
-// Aluno solicita reserva
+
 router.post('/', autenticar, async (req, res) => {
   try {
     const { livroId } = req.body
@@ -17,10 +17,10 @@ router.post('/', autenticar, async (req, res) => {
   }
 })
 
-// Bibliotecária aprova ou rejeita
+
 router.patch('/:id/status', autenticar, soBibliotecaria, async (req, res) => {
   try {
-    const { acao } = req.body // 'APROVAR' ou 'REJEITAR'
+    const { acao } = req.body 
     await atualizarStatusReserva(req.params.id, req.usuario.id, acao)
     res.json({ mensagem: `Reserva ${acao === 'APROVAR' ? 'aprovada' : 'rejeitada'} com sucesso.` })
   } catch (err) {

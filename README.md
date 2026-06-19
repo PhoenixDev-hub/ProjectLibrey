@@ -442,4 +442,4 @@ Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` pa
 
 Desenvolvido por PhoenixDev.
 
-Última atualização: fevereiro de 2026.
+Última atualização: Abril de 2026.

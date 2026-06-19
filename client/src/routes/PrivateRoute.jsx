@@ -4,7 +4,6 @@ import { useAuth } from "../hooks/useAuth";
 export default function PrivateRoute({ children }) {
   const { user, loadingAuth } = useAuth();
 
-  // Aguarda a verificação do token no localStorage antes de decidir
   if (loadingAuth) {
     return (
       <div style={{

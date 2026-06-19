@@ -1,4 +1,4 @@
-// src/cronjobs/verificarPrazos.js
+
 import cron from 'node-cron'
 import { prisma } from '../../lib/prisma.js'
 
@@ -9,7 +9,7 @@ async function verificarPrazos() {
   const amanha = new Date(hoje)
   amanha.setDate(amanha.getDate() + 1)
 
-  // 1. Livros com vencimento HOJE
+  
   const vencendoHoje = await prisma.reserva.findMany({
     where: {
       status: 'RETIRADO',
@@ -22,7 +22,7 @@ async function verificarPrazos() {
   })
 
   for (const reserva of vencendoHoje) {
-    // Evita notificação duplicada no mesmo dia
+    
     const jaNotificado = await prisma.notificacao.findFirst({
       where: {
         reservaId: reserva.id,

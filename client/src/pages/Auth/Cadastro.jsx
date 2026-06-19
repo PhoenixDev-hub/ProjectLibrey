@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   BookOpen,
   Calendar,
   Loader2,
@@ -7,7 +8,7 @@ import {
   Phone,
   User,
   UserPlus,
-  Users
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,10 +16,22 @@ import { TipoUsuario } from "../../constants/enums";
 import { useAuth } from "../../hooks/useAuth";
 
 const anosSalas = [
-  "1A", "1B", "1C", "1D",
-  "2A", "2B", "2C", "2D",
-  "3A", "3B", "3C", "3D"
+  "1A",
+  "1B",
+  "1C",
+  "1D",
+  "2A",
+  "2B",
+  "2C",
+  "2D",
+  "3A",
+  "3B",
+  "3C",
+  "3D",
 ];
+
+const fieldClass =
+  "w-full rounded-lg border border-slate-300 bg-white py-3 pl-10 pr-4 text-sm text-slate-950 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100";
 
 export default function Cadastro() {
   const { register } = useAuth();
@@ -44,6 +57,22 @@ export default function Cadastro() {
     if (errorMessage) setErrorMessage("");
   }
 
+  function getServerMessage(error) {
+    const serverError = error.response?.data;
+    const details = serverError?.details || serverError?.issues;
+
+    if (Array.isArray(details)) {
+      const messages = details
+        .map((detail) => detail.message || detail.mensagem || detail.error)
+        .filter(Boolean)
+        .join(", ");
+
+      if (messages) return messages;
+    }
+
+    return serverError?.error || "Erro ao cadastrar";
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
@@ -56,228 +85,228 @@ export default function Cadastro() {
     }
 
     const anoAtual = new Date().getFullYear();
-    if (
-      form.anoInicioEnsinoMedio < 1900 ||
-      form.anoInicioEnsinoMedio > anoAtual
-    ) {
+    const anoInicio = Number(form.anoInicioEnsinoMedio);
+
+    if (anoInicio < 1900 || anoInicio > anoAtual + 1) {
       setErrorMessage("Ano de início inválido");
       setIsLoading(false);
       return;
     }
 
     try {
-      await register({
-        ...form,
-        anoInicioEnsinoMedio: Number(form.anoInicioEnsinoMedio),
-        anoSala: form.tipoUsuario === TipoUsuario.ALUNO ? form.anoSala : null,
-      });
+      const requestBody = {
+        nome: form.nome.trim(),
+        sobrenome: form.sobrenome.trim(),
+        email: form.email.trim(),
+        senha: form.senha,
+        tipoUsuario: form.tipoUsuario,
+        anoInicioEnsinoMedio: anoInicio,
+        telefone: form.telefone.trim() || undefined,
+        anoSala:
+          form.tipoUsuario === TipoUsuario.ALUNO ? form.anoSala : undefined,
+      };
 
+      await register(requestBody);
       navigate("/dashboard");
     } catch (error) {
-      setErrorMessage(
-        error.response?.data?.error ||
-        "Erro ao cadastrar"
-      );
+      setErrorMessage(getServerMessage(error));
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="bg-white w-[520px] rounded-2xl p-10 shadow-2xl border border-slate-200">
-
-        
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-light text-slate-900">
-            Criar <span className="text-[#16a34a] font-medium">Conta</span>
-          </h2>
-          <p className="text-xs text-slate-400 mt-2">
-            Preencha seus dados para começar
-          </p>
-        </div>
-
-        
-        <div className="flex mb-8 bg-slate-100 p-1 rounded-lg">
-          <button
-            type="button"
-            onClick={() => navigate("/")}
-            className="flex-1 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors duration-300 flex items-center justify-center gap-2 relative group"
-          >
-            <User className="w-4 h-4" />
-            Login
-            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#16a34a] group-hover:w-1/2 transition-all duration-300"></span>
-          </button>
-
-          <button
-            type="button"
-            className="flex-1 py-2.5 text-sm font-medium text-white bg-[#16a34a] rounded-md flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-[#16a34a]/30"
-          >
-            <UserPlus className="w-4 h-4" />
-            Cadastro
-          </button>
-        </div>
-
-        
-        {errorMessage && (
-          <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 text-center border border-red-200">
-            {errorMessage}
-          </div>
-        )}
-
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div className="relative group">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-            <input
-              name="nome"
-              placeholder="Nome"
-              value={form.nome}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-            />
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-900 px-4 py-8">
+      <main className="w-full max-w-[680px] rounded-lg border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/30 sm:p-8">
+          <div className="mb-7">
+            <p className="text-sm font-medium text-emerald-700">
+              Cadastro de usuário
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-950">
+              Criar conta
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Preencha os dados abaixo para acessar o sistema.
+            </p>
           </div>
 
-          
-          <div className="relative group">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-            <input
-              name="sobrenome"
-              placeholder="Sobrenome"
-              value={form.sobrenome}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-            />
+          <div className="mb-7 grid grid-cols-2 rounded-lg bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950"
+            >
+              <User className="h-4 w-4" />
+              Login
+            </button>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 rounded-md bg-white px-3 py-2.5 text-sm font-medium text-emerald-700 shadow-sm"
+            >
+              <UserPlus className="h-4 w-4" />
+              Cadastro
+            </button>
           </div>
 
-          
-          <div className="relative group">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-            />
-          </div>
-
-          
-          <div className="relative group">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-            <input
-              type="password"
-              name="senha"
-              placeholder="Senha"
-              value={form.senha}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-            />
-          </div>
-
-          
-          <div className="relative group">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-            <input
-              type="password"
-              name="confirmarSenha"
-              placeholder="Confirmar senha"
-              value={form.confirmarSenha}
-              onChange={handleChange}
-              required
-              className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-            />
-          </div>
-
-          
-          <div className="grid grid-cols-2 gap-4">
-            
-            <div className="relative group">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-              <input
-                type="number"
-                name="anoInicioEnsinoMedio"
-                placeholder="Ano início"
-                min={1900}
-                max={new Date().getFullYear()}
-                value={form.anoInicioEnsinoMedio}
-                onChange={handleChange}
-                required
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-              />
+          {errorMessage && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
             </div>
+          )}
 
-            
-            <div className="relative group">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-              <input
-                name="telefone"
-                placeholder="Telefone"
-                value={form.telefone}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50"
-              />
-            </div>
-
-            
-            {form.tipoUsuario === TipoUsuario.ALUNO && (
-              <div className="relative group">
-                <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-                <select
-                  name="anoSala"
-                  value={form.anoSala}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  name="nome"
+                  placeholder="Nome"
+                  value={form.nome}
                   onChange={handleChange}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50 appearance-none"
+                  className={fieldClass}
+                />
+              </div>
+
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  name="sobrenome"
+                  placeholder="Sobrenome"
+                  value={form.sobrenome}
+                  onChange={handleChange}
+                  required
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                className={fieldClass}
+              />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  name="senha"
+                  placeholder="Senha"
+                  value={form.senha}
+                  onChange={handleChange}
+                  required
+                  className={fieldClass}
+                />
+              </div>
+
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  name="confirmarSenha"
+                  placeholder="Confirmar senha"
+                  value={form.confirmarSenha}
+                  onChange={handleChange}
+                  required
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="number"
+                  name="anoInicioEnsinoMedio"
+                  placeholder="Ano início"
+                  min={1900}
+                  max={new Date().getFullYear() + 1}
+                  value={form.anoInicioEnsinoMedio}
+                  onChange={handleChange}
+                  required
+                  className={fieldClass}
+                />
+              </div>
+
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  name="telefone"
+                  placeholder="Telefone"
+                  value={form.telefone}
+                  onChange={handleChange}
+                  className={fieldClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {form.tipoUsuario === TipoUsuario.ALUNO && (
+                <div className="relative">
+                  <BookOpen className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <select
+                    name="anoSala"
+                    value={form.anoSala}
+                    onChange={handleChange}
+                    required
+                    className={fieldClass}
+                  >
+                    {anosSalas.map((anoSala) => (
+                      <option key={anoSala} value={anoSala}>
+                        {anoSala}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div
+                className={`relative ${
+                  form.tipoUsuario === TipoUsuario.ALUNO ? "" : "sm:col-span-2"
+                }`}
+              >
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <select
+                  name="tipoUsuario"
+                  value={form.tipoUsuario}
+                  onChange={handleChange}
+                  className={fieldClass}
                 >
-                  {anosSalas.map(a => (
-                    <option key={a} value={a}>{a}</option>
-                  ))}
+                  <option value={TipoUsuario.ALUNO}>Aluno</option>
+                  <option value={TipoUsuario.PROFESSOR}>Professor</option>
+                  <option value={TipoUsuario.BIBLIOTECARIA}>Bibliotecária</option>
+                  <option value={TipoUsuario.ADMINISTRADOR}>Administrador</option>
                 </select>
               </div>
-            )}
-
-            
-            <div className={`relative group ${form.tipoUsuario === TipoUsuario.ALUNO ? '' : 'col-span-2'}`}>
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-              <select
-                name="tipoUsuario"
-                value={form.tipoUsuario}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:border-[#16a34a] focus:ring-1 focus:ring-[#16a34a] transition-all duration-300 group-hover:border-[#16a34a]/50 appearance-none"
-              >
-                <option value={TipoUsuario.ALUNO}>Aluno</option>
-                <option value={TipoUsuario.PROFESSOR}>Professor</option>
-                <option value={TipoUsuario.BIBLIOTECARIA}>Bibliotecária</option>
-                <option value={TipoUsuario.ADMINISTRADOR}>Administrador</option>
-              </select>
             </div>
-          </div>
 
-          
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-[#16a34a] hover:bg-[#16a34a]/90 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mt-2 relative overflow-hidden group"
-          >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <UserPlus className="w-4 h-4" />
-                Criar conta
-              </>
-            )}
-            <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  Criar conta
+                </>
+              )}
+            </button>
+          </form>
+        </main>
     </div>
   );
 }

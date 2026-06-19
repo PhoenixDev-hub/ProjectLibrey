@@ -13,54 +13,45 @@ export default function Login() {
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
 
-  // Se já está autenticado (ex.: recarregou a página), redireciona para o dashboard
   if (!loadingAuth && user?.authenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Enquanto verifica o token no localStorage, mostra loading
   if (loadingAuth) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <Loader2 className="w-8 h-8 text-[#16a34a] animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
       </div>
     );
   }
 
-
-  const validateEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(value);
-  };
-
-  const validatePassword = (value) => {
-    return value.length >= 6;
-  };
+  const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  const validatePassword = (value) => value.length >= 6;
 
   const handleEmailChange = (e) => {
     const value = e.target.value;
     setEmail(value);
-    if (value && !validateEmail(value)) {
-      setValidationErrors(prev => ({ ...prev, email: "Email inválido" }));
-    } else {
-      setValidationErrors(prev => ({ ...prev, email: "" }));
-    }
+    setValidationErrors((prev) => ({
+      ...prev,
+      email: value && !validateEmail(value) ? "Email inválido" : "",
+    }));
   };
 
   const handlePasswordChange = (e) => {
     const value = e.target.value;
     setPassword(value);
-    if (value && !validatePassword(value)) {
-      setValidationErrors(prev => ({ ...prev, password: "Senha deve ter no mínimo 6 caracteres" }));
-    } else {
-      setValidationErrors(prev => ({ ...prev, password: "" }));
-    }
+    setValidationErrors((prev) => ({
+      ...prev,
+      password:
+        value && !validatePassword(value)
+          ? "Senha deve ter no mínimo 6 caracteres"
+          : "",
+    }));
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
-
 
     if (!email || !password) {
       setError("Email e senha são obrigatórios");
@@ -83,7 +74,6 @@ export default function Login() {
       await login({ email, password });
       navigate("/dashboard");
     } catch (err) {
-
       if (err.response?.status === 429) {
         setError("Muitas tentativas. Tente novamente em 15 minutos");
       } else if (err.response?.status === 401) {
@@ -99,124 +89,125 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="bg-white w-[440px] rounded-2xl p-10 shadow-2xl border border-slate-200">
-
-
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-light text-slate-900">
-            Biblioteca<span className="font-medium text-[#16a34a]"> Acadêmica</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-2">
-            Sistema de Bibliotecas Escolares
-          </p>
-        </div>
-
-
-        <div className="flex mb-8 bg-slate-100 p-1 rounded-lg">
-          <button className="flex-1 py-2.5 text-sm font-medium text-white bg-[#16a34a] rounded-md flex items-center justify-center gap-2 transition-all duration-300 hover:shadow-lg hover:shadow-[#16a34a]/30">
-            <LogIn className="w-4 h-4" />
-            Login
-          </button>
-          <button
-            type="button"
-            className="flex-1 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center gap-2 transition-colors duration-300 relative group"
-            onClick={() => navigate("/cadastro")}
-          >
-            <User className="w-4 h-4" />
-            Cadastro
-            <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-[#16a34a] group-hover:w-1/2 transition-all duration-300"></span>
-          </button>
-        </div>
-
-
-        {error && (
-          <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 flex items-center gap-2 border border-red-200">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">
-              E-mail
-            </label>
-            <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-              <input
-                required
-                type="email"
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 transition-all duration-300 group-hover:border-[#16a34a]/50 ${
-                  validationErrors.email
-                    ? 'border-red-300 focus:border-red-400 focus:ring-red-300'
-                    : 'border-slate-200 focus:border-[#16a34a] focus:ring-[#16a34a]'
-                }`}
-                placeholder="seu@email.com"
-                value={email}
-                onChange={handleEmailChange}
-              />
-            </div>
-            {validationErrors.email && <p className="text-xs text-red-600 mt-1">{validationErrors.email}</p>}
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-900 px-4 py-8">
+      <main className="w-full max-w-[440px] rounded-lg border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/30 sm:p-8">
+          <div className="mb-7">
+            <p className="text-sm font-medium text-emerald-700">
+              Bem-vindo de volta
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-slate-950">
+              Entrar
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Use seu e-mail e senha cadastrados para continuar.
+            </p>
           </div>
 
-          <div>
-            <label className="text-xs font-medium text-slate-500 mb-1 block">
-              Senha
-            </label>
-            <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#16a34a] transition-colors duration-300" />
-              <input
-                required
-                type="password"
-                className={`w-full pl-10 pr-4 py-3 bg-slate-50 border rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 transition-all duration-300 group-hover:border-[#16a34a]/50 ${
-                  validationErrors.password
-                    ? 'border-red-300 focus:border-red-400 focus:ring-red-300'
-                    : 'border-slate-200 focus:border-[#16a34a] focus:ring-[#16a34a]'
-                }`}
-                placeholder="••••••••"
-                value={password}
-                onChange={handlePasswordChange}
-              />
-            </div>
-            {validationErrors.password && <p className="text-xs text-red-600 mt-1">{validationErrors.password}</p>}
-          </div>
-
-
-          <div className="text-right">
+          <div className="mb-7 grid grid-cols-2 rounded-lg bg-slate-100 p-1">
+            <button className="flex items-center justify-center gap-2 rounded-md bg-white px-3 py-2.5 text-sm font-medium text-emerald-700 shadow-sm">
+              <LogIn className="h-4 w-4" />
+              Login
+            </button>
             <button
               type="button"
-              onClick={() => navigate("/esqueci-senha")}
-              className="text-xs text-[#16a34a] hover:text-[#16a34a]/80 font-medium transition-colors duration-300"
+              className="flex items-center justify-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:text-slate-950"
+              onClick={() => navigate("/cadastro")}
             >
-              Esqueceu a senha?
+              <User className="h-4 w-4" />
+              Cadastro
             </button>
           </div>
 
+          {error && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
-          <button
-            type="submit"
-            disabled={isLoading || Object.values(validationErrors).some(e => e)}
-            className="w-full bg-[#16a34a] hover:bg-[#16a34a]/90 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] mt-2 relative overflow-hidden group"
-          >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <>
-                <LogIn className="w-4 h-4" />
-                Entrar
-              </>
-            )}
-            <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase text-slate-500">
+                E-mail
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  required
+                  type="email"
+                  className={`w-full rounded-lg border bg-white py-3 pl-10 pr-4 text-sm text-slate-950 outline-none transition focus:ring-2 ${
+                    validationErrors.email
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                      : "border-slate-300 focus:border-emerald-500 focus:ring-emerald-100"
+                  }`}
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={handleEmailChange}
+                />
+              </div>
+              {validationErrors.email && (
+                <p className="mt-1 text-xs text-red-600">
+                  {validationErrors.email}
+                </p>
+              )}
+            </div>
 
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase text-slate-500">
+                Senha
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  required
+                  type="password"
+                  className={`w-full rounded-lg border bg-white py-3 pl-10 pr-4 text-sm text-slate-950 outline-none transition focus:ring-2 ${
+                    validationErrors.password
+                      ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                      : "border-slate-300 focus:border-emerald-500 focus:ring-emerald-100"
+                  }`}
+                  placeholder="Digite sua senha"
+                  value={password}
+                  onChange={handlePasswordChange}
+                />
+              </div>
+              {validationErrors.password && (
+                <p className="mt-1 text-xs text-red-600">
+                  {validationErrors.password}
+                </p>
+              )}
+            </div>
 
-        <p className="text-xs text-center text-slate-400 mt-6">
-          © 2026 Biblioteca Acadêmica
-        </p>
-      </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => navigate("/esqueci-senha")}
+                className="text-sm font-medium text-emerald-700 transition-colors hover:text-emerald-800"
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || Object.values(validationErrors).some(Boolean)}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4" />
+                  Entrar
+                </>
+              )}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-slate-400">
+            © 2026 Biblioteca Acadêmica
+          </p>
+        </main>
     </div>
   );
 }

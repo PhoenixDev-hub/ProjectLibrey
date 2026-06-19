@@ -3,7 +3,7 @@ import Cadastro from "../pages/Auth/Cadastro";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Login from "../pages/Auth/Login";
 import ResetPassword from "../pages/Auth/ResetPassword";
-import Dashboard from "../pages/Dashboard/Dashboard";
+import Home from "../pages/Dashboard/Home";
 import PrivateRoute from "./PrivateRoute";
 
 export default function AppRouter() {
@@ -19,7 +19,7 @@ export default function AppRouter() {
         path="/dashboard"
         element={
           <PrivateRoute>
-            <Dashboard />
+            <Home />
           </PrivateRoute>
         }
       />
