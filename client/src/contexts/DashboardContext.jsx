@@ -262,8 +262,12 @@ export const DashboardProvider = ({ children }) => {
     try {
       const payload = {
         ...userForm,
-        anoInicioEnsinoMedio: Number(userForm.anoInicioEnsinoMedio)
+        anoInicioEnsinoMedio: Number(userForm.anoInicioEnsinoMedio) || new Date().getFullYear()
       };
+
+      if (payload.tipoUsuario !== 'ALUNO') {
+        payload.anoSala = null;
+      }
 
       if (editingUser) {
         if (!payload.senha) {

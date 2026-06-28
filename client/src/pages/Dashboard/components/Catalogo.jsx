@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../../contexts/DashboardContext';
 import { Heart, Star, ChevronLeft, ChevronRight, Bookmark, BookOpen, ArrowLeft } from 'lucide-react';
 
+const coverCache = new Map();
+
 const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   const isSmall = size === 'sm';
   const [coverUrl, setCoverUrl] = useState(imageUrl || null);
   const [loading, setLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const elementRef = React.useRef(null);
 
   const getGradient = (str) => {
     const gradients = [
@@ -26,17 +30,58 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   };
 
   useEffect(() => {
+    if (imageUrl || coverUrl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [imageUrl, coverUrl]);
+
+  useEffect(() => {
     if (imageUrl) {
       setCoverUrl(imageUrl);
       return;
     }
+
+    if (!isVisible) return;
+
+    const cacheKey = `${title}-${author}`;
+    if (coverCache.has(cacheKey)) {
+      setCoverUrl(coverCache.get(cacheKey));
+      return;
+    }
+
+    const cleanText = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/-\s*vol(ume)?\s*\d*/gi, '')
+        .trim();
+    };
 
     let active = true;
     const searchBookCover = async () => {
       if (!title) return;
       setLoading(true);
       try {
-        let searchQuery = encodeURIComponent(`${title} ${author || ''}`);
+        const cleanTitle = cleanText(title);
+        const isAuthorValid = author && !['desconhecido', 'vários', 'varios', 'diversos', 'sem autor'].includes(author.toLowerCase().trim());
+        const cleanAuthor = isAuthorValid ? cleanText(author) : '';
+        
+        let searchQuery = encodeURIComponent(`${cleanTitle} ${cleanAuthor}`);
         let response = await fetch(`https://openlibrary.org/search.json?q=${searchQuery}&limit=3`);
         let data = await response.json();
         
@@ -45,23 +90,32 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
         if (active && data.docs && data.docs.length > 0) {
           const match = data.docs.find(doc => doc.cover_i);
           if (match) {
-            setCoverUrl(`https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg`);
+            const secureUrl = `https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg`;
+            coverCache.set(cacheKey, secureUrl);
+            setCoverUrl(secureUrl);
             foundCover = true;
           }
         }
         
-        if (active && !foundCover) {
-          searchQuery = encodeURIComponent(title);
-          response = await fetch(`https://openlibrary.org/search.json?q=${searchQuery}&limit=5`);
+        if (active && !foundCover && cleanAuthor) {
+          searchQuery = encodeURIComponent(cleanTitle);
+          response = await fetch(`https://openlibrary.org/search.json?q=${searchQuery}&limit=3`);
           data = await response.json();
           
           if (data.docs && data.docs.length > 0) {
             const match = data.docs.find(doc => doc.cover_i);
             if (match) {
-              setCoverUrl(`https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg`);
+              const secureUrl = `https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg`;
+              coverCache.set(cacheKey, secureUrl);
+              setCoverUrl(secureUrl);
               foundCover = true;
             }
           }
+        }
+        
+        if (active && !foundCover) {
+          coverCache.set(cacheKey, null);
+          setCoverUrl(null);
         }
       } catch (err) {
         console.error("Erro ao buscar capa no Open Library:", err);
@@ -75,52 +129,48 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
     return () => {
       active = false;
     };
-  }, [title, author, imageUrl]);
-
-  if (coverUrl) {
-    return (
-      <div className={`relative shrink-0 overflow-hidden rounded-2xl shadow-lg border border-white/10 transition-all duration-300 hover:scale-[1.03]
-        ${isSmall ? 'w-14 h-20' : 'w-24 h-32'}
-      `}>
-        <img 
-          src={coverUrl} 
-          alt={title} 
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-        <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/30 to-transparent shadow-[inset_1px_0_0_rgba(255,255,255,0.1)]"></div>
-        {loading && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          </div>
-        )}
-      </div>
-    );
-  }
+  }, [title, author, imageUrl, isVisible]);
 
   const gradient = getGradient(title);
-  
-  return (
-    <div className={`relative shrink-0 rounded-2xl bg-gradient-to-br ${gradient} shadow-lg border border-white/10 flex flex-col justify-between p-2 select-none overflow-hidden transition-transform duration-300 hover:scale-[1.03]
-      ${isSmall ? 'w-14 h-20' : 'w-24 h-32'}
-    `}>
-      <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/40 to-transparent"></div>
-      <div className="absolute inset-y-0 left-2 w-px bg-white/10"></div>
-      
-      <span className={`font-black tracking-tight leading-tight line-clamp-3 text-white
-        ${isSmall ? 'text-[7px] mt-1 ml-1.5' : 'text-[10px] mt-2 ml-2'}
-      `}>
-        {title}
-      </span>
 
-      <span className={`font-bold opacity-75 truncate text-white/90
-        ${isSmall ? 'text-[5px] mb-1 ml-1.5' : 'text-[8px] mb-2 ml-2'}
-      `}>
-        {author}
-      </span>
+  return (
+    <div 
+      ref={elementRef}
+      className={`relative shrink-0 overflow-hidden rounded-2xl shadow-lg border border-white/10 transition-all duration-300 hover:scale-[1.03]
+        ${isSmall ? 'w-14 h-20' : 'w-24 h-32'}
+      `}
+    >
+      {coverUrl ? (
+        <>
+          <img 
+            src={coverUrl} 
+            alt={title} 
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+          <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/30 to-transparent shadow-[inset_1px_0_0_rgba(255,255,255,0.1)]"></div>
+        </>
+      ) : (
+        <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col justify-between p-2 select-none`}>
+          <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/40 to-transparent"></div>
+          <div className="absolute inset-y-0 left-2 w-px bg-white/10"></div>
+          
+          <span className={`font-black tracking-tight leading-tight line-clamp-3 text-white
+            ${isSmall ? 'text-[7px] mt-1 ml-1.5' : 'text-[10px] mt-2 ml-2'}
+          `}>
+            {title}
+          </span>
+
+          <span className={`font-bold opacity-75 truncate text-white/90
+            ${isSmall ? 'text-[5px] mb-1 ml-1.5' : 'text-[8px] mb-2 ml-2'}
+          `}>
+            {author}
+          </span>
+        </div>
+      )}
 
       {loading && (
-        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
         </div>
       )}

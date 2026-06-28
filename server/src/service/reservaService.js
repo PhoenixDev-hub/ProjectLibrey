@@ -130,14 +130,15 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
         });
     } else if (acao === "REJEITAR") {
         await prisma.$transaction(async (tx) => {
-            await tx.reserva.update({
+            await tx.notificacao.deleteMany({
                 where: {
-                    id: reservaId,
-                },
-                data: {
-                    status: "REJEITADO",
-                    aprovadoPor: bibliotecariaId,
-                    aprovadoEm: new Date()
+                    reservaId: reservaId
+                }
+            });
+
+            await tx.reserva.delete({
+                where: {
+                    id: reservaId
                 }
             });
 
@@ -153,7 +154,7 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
             await tx.notificacao.create({
                 data: {
                     usuarioId: reserva.usuarioId,
-                    reservaId: reserva.id,
+                    reservaId: null,
                     tipo: "RESERVA_REJEITADA",
                     titulo: `Reserva rejeitada para ${reserva.exemplar.livro.titulo}`,
                     mensagem: `Sua reserva para o livro ${reserva.exemplar.livro.titulo} foi rejeitada.`

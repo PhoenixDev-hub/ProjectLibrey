@@ -65,7 +65,7 @@ export const BookModal = () => {
 };
 
 export const UserModal = () => {
-  const { theme, showUserModal, setShowUserModal, editingUser, userForm, setUserForm, handleSaveUser } = useDashboard();
+  const { theme, showUserModal, setShowUserModal, editingUser, userForm, setUserForm, handleSaveUser, errorMsg } = useDashboard();
 
   if (!showUserModal) return null;
 
@@ -79,6 +79,13 @@ export const UserModal = () => {
             <X size={20} />
           </button>
         </div>
+
+        {errorMsg && (
+          <div className="bg-rose-500/10 border border-rose-500/25 text-rose-500 px-4 py-2.5 rounded-2xl text-xs font-semibold mb-4">
+            {errorMsg}
+          </div>
+        )}
+
         <form onSubmit={handleSaveUser} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -103,7 +110,18 @@ export const UserModal = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Tipo de Usuário</label>
-              <select value={userForm.tipoUsuario} onChange={e => setUserForm({...userForm, tipoUsuario: e.target.value})} className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}>
+              <select 
+                value={userForm.tipoUsuario} 
+                onChange={e => {
+                  const newType = e.target.value;
+                  setUserForm({
+                    ...userForm,
+                    tipoUsuario: newType,
+                    anoSala: newType === 'ALUNO' ? '1A' : newType === 'PROFESSOR' ? 'Sala dos Professores' : ''
+                  });
+                }} 
+                className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
+              >
                 <option value="ALUNO">Aluno</option>
                 <option value="PROFESSOR">Professor</option>
                 <option value="BIBLIOTECARIA">Bibliotecária</option>
@@ -112,7 +130,40 @@ export const UserModal = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Turma / Sala</label>
-              <input type="text" value={userForm.anoSala} onChange={e => setUserForm({...userForm, anoSala: e.target.value})} className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`} placeholder="Ex: 1ºA, Sala dos Professores" />
+              {userForm.tipoUsuario === 'ALUNO' ? (
+                <select 
+                  value={userForm.anoSala || '1A'} 
+                  onChange={e => {
+                    const val = e.target.value;
+                    const gradeMatch = val.match(/\d/);
+                    let computedYear = userForm.anoInicioEnsinoMedio;
+                    if (gradeMatch) {
+                      const grade = Number(gradeMatch[0]);
+                      const currentYear = new Date().getFullYear();
+                      computedYear = currentYear - grade + 1;
+                    }
+                    setUserForm({
+                      ...userForm,
+                      anoSala: val,
+                      anoInicioEnsinoMedio: computedYear
+                    });
+                  }} 
+                  className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
+                >
+                  {['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '3A', '3B', '3C', '3D'].map(val => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
+              ) : (
+                <input 
+                  type="text" 
+                  value={userForm.anoSala} 
+                  onChange={e => setUserForm({...userForm, anoSala: e.target.value})} 
+                  className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`} 
+                  placeholder="Ex: Sala dos Professores" 
+                  disabled={['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(userForm.tipoUsuario)}
+                />
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -120,12 +171,16 @@ export const UserModal = () => {
               <label className="block text-sm font-medium mb-1">Telefone</label>
               <input type="text" value={userForm.telefone} onChange={e => setUserForm({...userForm, telefone: e.target.value})} className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`} />
             </div>
-            {userForm.tipoUsuario === 'ALUNO' && (
-              <div>
-                <label className="block text-sm font-medium mb-1">Ano Início E.M.</label>
-                <input type="number" value={userForm.anoInicioEnsinoMedio} onChange={e => setUserForm({...userForm, anoInicioEnsinoMedio: e.target.value})} className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`} />
-              </div>
-            )}
+            <div>
+              <label className="block text-sm font-medium mb-1">Ano Início E.M.</label>
+              <input 
+                type="number" 
+                value={userForm.anoInicioEnsinoMedio} 
+                onChange={e => setUserForm({...userForm, anoInicioEnsinoMedio: e.target.value})} 
+                className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
+                placeholder="Ex: 2026"
+              />
+            </div>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setShowUserModal(false)} className={`px-4 py-2 text-sm font-semibold rounded-2xl border transition ${theme === 'dark' ? 'border-white/10 text-slate-300 hover:bg-white/5' : 'border-gray-300 text-slate-700 hover:bg-gray-100'}`}>
