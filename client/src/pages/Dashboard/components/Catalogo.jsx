@@ -211,7 +211,7 @@ const Catalogo = () => {
     books.forEach(b => {
       if (b.area) areasSet.add(b.area);
     });
-    return Array.from(areasSet).slice(0, 4); // limite de 4 para o grid do design
+    return Array.from(areasSet).slice(0, 4);
   })();
 
   const filteredBooks = (() => {
