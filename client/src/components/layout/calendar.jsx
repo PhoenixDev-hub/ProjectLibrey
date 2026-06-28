@@ -27,7 +27,7 @@ const borderColors = {
 
 export default function Calendar() {
   const { theme, calendarEvents, user, setShowEventModal } = useDashboard();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1)); // Junho/2026
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1));
   const [showAllEvents, setShowAllEvents] = useState(false);
   
   const isDark = theme === 'dark';
@@ -35,9 +35,9 @@ export default function Calendar() {
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-  const today = new Date(); // Para destacar o dia atual, se quiser. Fixaremos no exemplo.
+  const today = new Date();
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
-  const currentDay = 12; // Simulando dia 12 como "hoje" para o exemplo visual
+  const currentDay = 12;
 
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
@@ -61,7 +61,7 @@ export default function Calendar() {
         const events = getEventsForDate(dayNumber);
         const hasEvent = events.length > 0;
         const isToday = dayNumber === currentDay;
-        const uniqueTypes = [...new Set(events.map(e => e.type))].slice(0, 3); // max 3 bolinhas
+        const uniqueTypes = [...new Set(events.map(e => e.type))].slice(0, 3);
 
         cells.push(
           <div
@@ -114,14 +114,12 @@ export default function Calendar() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Container do Calendário */}
       <div className={`
         w-full rounded-3xl p-6 shadow-sm
         ${isDark ? 'bg-slate-800' : 'bg-white'}
       `}>
         <h3 className={`text-sm font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-800'}`}>Agenda</h3>
         
-        {/* Cabeçalho do Calendário */}
         <div className="flex items-center justify-center gap-4 mb-6">
           <button onClick={goToPrevMonth} className={`text-lg transition hover:scale-110 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}>
             &larr;
@@ -134,19 +132,16 @@ export default function Calendar() {
           </button>
         </div>
 
-        {/* Dias da semana */}
         <div className="grid grid-cols-7 gap-1 mb-3 text-xs font-semibold text-slate-400 text-center">
           {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
             <span key={d}>{d}</span>
           ))}
         </div>
 
-        {/* Grade de dias */}
         <div className="grid grid-cols-7 gap-y-2 gap-x-1">
           {renderDays()}
         </div>
 
-        {/* Legenda */}
         <div className="flex items-center gap-4 mt-6 text-xs font-semibold text-slate-500 justify-center">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
@@ -159,7 +154,6 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Lista de Eventos Individuais */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between mb-1">
           <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -197,7 +191,6 @@ export default function Calendar() {
                       opacity-100 transition-all duration-300
                     `}
                   >
-                    {/* Quadrado escuro da data */}
                     <div className={`
                       flex flex-col items-center justify-center shrink-0 w-12 h-12 rounded-xl
                       ${isDark ? 'bg-slate-950 text-white' : 'bg-slate-900 text-white'}
@@ -206,7 +199,6 @@ export default function Calendar() {
                       <span className="text-[10px] uppercase font-medium mt-0.5">{shortMonthNames[m - 1]}</span>
                     </div>
                     
-                    {/* Título do Evento */}
                     <span className={`text-sm font-bold truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
                       {e.title}
                     </span>

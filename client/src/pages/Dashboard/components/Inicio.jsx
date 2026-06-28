@@ -6,11 +6,9 @@ const Inicio = () => {
   const { theme, user, reservations, users } = useDashboard();
   const isDark = theme === 'dark';
 
-  // Garantir que reservations e users são arrays válidos para evitar quebra (Tela Branca)
   const safeReservations = Array.isArray(reservations) ? reservations : [];
   const safeUsers = Array.isArray(users) ? users : [];
 
-  // Agrupar e calcular estatísticas de empréstimos por status (em dia, atrasados, aguardando, pendentes)
   const acervoStats = (() => {
     const hoje = new Date();
     
@@ -79,17 +77,14 @@ const Inicio = () => {
     };
   })();
 
-  // Constantes para o cálculo do gráfico de rosca (SVG Donut Chart)
   const radius = 38;
   const circumference = 2 * Math.PI * radius; // Aprox. 238.76
   let accumulatedPercentage = 0;
 
   return (
     <div className="flex flex-col xl:flex-row gap-8">
-      {/* Restante do conteúdo ao centro/esquerda */}
       <div className="flex-1 flex flex-col gap-6">
         
-        {/* Banner de Boas-vindas (Estilo do print) */}
         <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
           ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}
         `}>
@@ -107,12 +102,10 @@ const Inicio = () => {
             </div>
           </div>
 
-          {/* Efeitos de fundo do banner */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="absolute bottom-0 left-10 w-40 h-40 bg-black opacity-10 rounded-full blur-2xl translate-y-1/2"></div>
         </div>
 
-        {/* Cards de Informações (Empréstimos, Expirados, etc) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
             title="Empréstimos" 
@@ -144,7 +137,6 @@ const Inicio = () => {
           />
         </div>
 
-        {/* Seção de Gráficos do Acervo (Estilo "Team executive" do print) */}
         <div className={`rounded-3xl border p-6 shadow-sm flex flex-col flex-1 ${isDark ? 'border-white/10 bg-slate-900/60' : 'border-gray-200 bg-white'}`}>
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -158,10 +150,8 @@ const Inicio = () => {
           
           <div className="flex-1 flex flex-col md:flex-row items-center justify-around gap-8 md:gap-4">
             
-            {/* Gráfico Donut em SVG */}
             <div className="relative w-48 h-48 flex items-center justify-center shrink-0">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                {/* Círculo de fundo */}
                 <circle 
                   cx="50" 
                   cy="50" 
@@ -171,7 +161,6 @@ const Inicio = () => {
                   fill="transparent" 
                 />
                 
-                {/* Segmentos de categorias */}
                 {acervoStats.data.map((stat, idx) => {
                   const dashArray = `${(stat.percentage * circumference) / 100} ${circumference}`;
                   const dashOffset = -((accumulatedPercentage * circumference) / 100);
@@ -195,7 +184,6 @@ const Inicio = () => {
                 })}
               </svg>
               
-              {/* Texto central do Donut */}
               <div className="absolute flex flex-col items-center justify-center">
                 <span className={`text-3xl font-extrabold ${isDark ? 'text-white' : 'text-slate-905'}`}>
                   {acervoStats.total}
@@ -206,7 +194,6 @@ const Inicio = () => {
               </div>
             </div>
 
-            {/* Listagem de Proporções e Barras de Progresso */}
             <div className="flex-1 w-full max-w-md flex flex-col gap-4">
               {acervoStats.data.map((stat, idx) => (
                 <div key={idx} className="flex flex-col gap-1.5">
@@ -220,7 +207,6 @@ const Inicio = () => {
                     </span>
                   </div>
                   
-                  {/* Barra de Progresso */}
                   <div className={`w-full h-2 rounded-full overflow-hidden ${isDark ? 'bg-slate-800' : 'bg-slate-100'}`}>
                     <div 
                       className={`h-full rounded-full ${stat.tailwindColor} transition-all duration-1000`} 
@@ -236,7 +222,6 @@ const Inicio = () => {
 
       </div>
 
-      {/* Canto Direito - Calendário e Atividades */}
       <div className="w-full xl:w-[360px] shrink-0 flex flex-col gap-6">
         <Calendar />
       </div>
@@ -244,7 +229,6 @@ const Inicio = () => {
   );
 };
 
-// Componente auxiliar para os 4 cartõezinhos
 const StatCard = ({ title, value, icon: Icon, colorClass, isDark }) => (
   <div className={`rounded-3xl border p-5 shadow-sm flex items-center gap-4 transition hover:scale-[1.02] ${isDark ? 'border-white/10 bg-slate-900' : 'border-gray-200 bg-white'}`}>
     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>

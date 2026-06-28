@@ -44,7 +44,6 @@ async function verificarPrazos() {
     }
   }
 
-  // 2. Livros em ATRASO (prazo já passou)
   const emAtraso = await prisma.reserva.findMany({
     where: {
       status: 'RETIRADO',
@@ -59,18 +58,15 @@ async function verificarPrazos() {
     }
   })
 
-  // Busca bibliotecárias para também notificar sobre atrasos
   const bibliotecarias = await prisma.usuario.findMany({
     where: { tipoUsuario: { in: ['BIBLIOTECARIA', 'ADMINISTRADOR'] }, status: 'ATIVO' }
   })
 
   for (const reserva of emAtraso) {
-    // Só envia uma vez por dia
     if (reserva.notificacoes.length > 0) continue
 
     const diasAtraso = Math.floor((hoje - reserva.prazoDevol) / (1000 * 60 * 60 * 24))
 
-    // Notifica o aluno
     await prisma.notificacao.create({
       data: {
         usuarioId: reserva.usuarioId,
@@ -81,7 +77,6 @@ async function verificarPrazos() {
       }
     })
 
-    // Notifica as bibliotecárias
     await prisma.notificacao.createMany({
       data: bibliotecarias.map((bib) => ({
         usuarioId: bib.id,
@@ -96,7 +91,6 @@ async function verificarPrazos() {
   console.log(`[Cron] Verificação de prazos concluída: ${vencendoHoje.length} vencendo hoje, ${emAtraso.length} em atraso.`)
 }
 
-// Roda todo dia às 8h da manhã
 cron.schedule('0 8 * * *', verificarPrazos)
 
 export default verificarPrazos

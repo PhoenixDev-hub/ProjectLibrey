@@ -38,7 +38,6 @@ export const config = {
   }
 };
 
-// Email / Mailer settings
 config.email = {
   smtpHost: process.env.SMTP_HOST || null,
   smtpPort: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : null,

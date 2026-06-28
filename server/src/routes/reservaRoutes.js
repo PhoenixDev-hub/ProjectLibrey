@@ -28,7 +28,6 @@ router.patch('/:id/status', autenticar, soBibliotecaria, async (req, res) => {
   }
 })
 
-// Registra retirada física
 router.patch('/:id/retirar', autenticar, soBibliotecaria, async (req, res) => {
   try {
     await registrarRetirada(req.params.id)
@@ -38,7 +37,6 @@ router.patch('/:id/retirar', autenticar, soBibliotecaria, async (req, res) => {
   }
 })
 
-// Registra devolução
 router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res) => {
   try {
     await registrarDevolucao(req.params.id)
@@ -48,7 +46,6 @@ router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res) => {
   }
 })
 
-// Lista reservas (bibliotecária vê todas, aluno vê as suas)
 router.get('/', autenticar, async (req, res) => {
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(req.usuario.tipoUsuario)
   const filtro = ehBibliotecaria ? {} : { usuarioId: req.usuario.id }

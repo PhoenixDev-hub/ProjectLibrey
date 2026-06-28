@@ -3,7 +3,6 @@ import { DashboardProvider, useDashboard } from '../../contexts/DashboardContext
 import DashboardShell from '../../components/layout/DashboardShell';
 import { BookModal, UserModal } from '../../components/layout/DashboardModals';
 
-// Components
 import Inicio from './components/Inicio';
 import Catalogo from './components/Catalogo';
 import Emprestimos from './components/Emprestimos';
@@ -32,7 +31,6 @@ const DashboardContent = () => {
       case 'configuracoes':
         return <Configuracoes />;
       default:
-        // Render pending content
         return (
           <div className="min-h-[calc(100vh-3rem)] flex items-center justify-center">
             <div className={`w-full max-w-3xl rounded-[32px] border p-10 shadow-lg bg-slate-900/80 border-white/10 shadow-[0_40px_120px_rgba(15,23,42,0.45)]`}>

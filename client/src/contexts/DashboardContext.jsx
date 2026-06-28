@@ -14,7 +14,6 @@ export const DashboardProvider = ({ children }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [theme, setTheme] = useState('dark');
 
-  // Dynamic lists from backend
   const [books, setBooks] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [users, setUsers] = useState([]);
@@ -24,7 +23,6 @@ export const DashboardProvider = ({ children }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
 
-  // Modals state
   const [showBookModal, setShowBookModal] = useState(false);
   const [editingBook, setEditingBook] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
@@ -44,7 +42,6 @@ export const DashboardProvider = ({ children }) => {
     { id: 10, date: '2026-06-25', title: 'Clube de Leitura: Suspense', type: 'warning' }
   ]);
 
-  // Forms state
   const [bookForm, setBookForm] = useState({
     titulo: '',
     autor: '',
@@ -69,7 +66,7 @@ export const DashboardProvider = ({ children }) => {
   const [eventForm, setEventForm] = useState({
     date: '',
     title: '',
-    type: 'accent' // default type
+    type: 'accent'
   });
 
   const handleAddEvent = (e) => {
@@ -146,7 +143,6 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [successMsg, errorMsg]);
 
-  // Reservation management actions
   const handleReservarLivro = async (livroId) => {
     try {
       await api.post('/reservas', { livroId });
@@ -187,7 +183,6 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  // Notification actions
   const handleMarkAsRead = async (id) => {
     try {
       await api.patch(`/notificacoes/${id}/lida`);
@@ -206,7 +201,6 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  // Book CRUD actions
   const handleSaveBook = async (e) => {
     e.preventDefault();
     try {
@@ -263,7 +257,6 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  // User CRUD actions
   const handleSaveUser = async (e) => {
     e.preventDefault();
     try {

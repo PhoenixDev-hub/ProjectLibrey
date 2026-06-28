@@ -44,7 +44,6 @@ const DashboardShell = ({ children }) => {
       <div className={`fixed inset-0 transition-all duration-300 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.18),_transparent_25%),linear-gradient(180deg,_#020617_0%,_#0f172a_100%)]' : 'bg-gray-50'}`} />
       
       <div className="relative flex min-h-screen">
-        {/* Sidebar */}
         <aside className={`${sidebarOpen ? 'w-72' : 'w-20'} sticky top-0 h-screen flex flex-col justify-between border-r ${theme === 'dark' ? 'border-white/10 bg-slate-950/95' : 'border-gray-200 bg-white'} transition-all duration-300`}>
           <div>
             <div className={`flex items-center ${sidebarOpen ? 'justify-start px-8' : 'justify-center'} gap-3 py-6`}>
@@ -107,12 +106,10 @@ const DashboardShell = ({ children }) => {
           </div>
         </aside>
 
-        {/* Main Content */}
         <div className="flex-1 transition-all duration-300">
           <div className="relative">
             {theme === 'dark' && <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-slate-950/90 to-transparent" />}
             
-            {/* Header */}
             <header className={`relative border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-200 bg-white/60 backdrop-blur-md'} px-8 py-6`}>
               <div className="flex items-center justify-between gap-4">
                 <div className="relative max-w-xl flex-1">

@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../../../contexts/DashboardContext';
 import { Heart, Star, ChevronLeft, ChevronRight, Bookmark, BookOpen, ArrowLeft } from 'lucide-react';
 
-// Componente para renderizar capas de livros com busca dinâmica por Título + Autor
 const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   const isSmall = size === 'sm';
   const [coverUrl, setCoverUrl] = useState(imageUrl || null);
   const [loading, setLoading] = useState(false);
 
-  // Gerar um gradiente de fundo consistente com base no título do livro para usar como placeholder
   const getGradient = (str) => {
     const gradients = [
       'from-blue-600 to-indigo-900',
@@ -28,7 +26,6 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   };
 
   useEffect(() => {
-    // Se já temos a URL da imagem (estática), não precisamos buscar
     if (imageUrl) {
       setCoverUrl(imageUrl);
       return;
@@ -39,7 +36,6 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
       if (!title) return;
       setLoading(true);
       try {
-        // Passo 1: Busca pelo Título + Autor (limite 3 para escanear edições)
         let searchQuery = encodeURIComponent(`${title} ${author || ''}`);
         let response = await fetch(`https://openlibrary.org/search.json?q=${searchQuery}&limit=3`);
         let data = await response.json();
@@ -47,7 +43,6 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
         let foundCover = false;
         
         if (active && data.docs && data.docs.length > 0) {
-          // Achar a primeira edição do resultado que possua ID de capa
           const match = data.docs.find(doc => doc.cover_i);
           if (match) {
             setCoverUrl(`https://covers.openlibrary.org/b/id/${match.cover_i}-L.jpg`);
@@ -55,7 +50,6 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
           }
         }
         
-        // Passo 2: Se falhar, busca apenas pelo Título do livro (limite 5 edições)
         if (active && !foundCover) {
           searchQuery = encodeURIComponent(title);
           response = await fetch(`https://openlibrary.org/search.json?q=${searchQuery}&limit=5`);
@@ -94,7 +88,6 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
           className="w-full h-full object-cover"
           loading="lazy"
         />
-        {/* Sombra de dobra do livro */}
         <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/30 to-transparent shadow-[inset_1px_0_0_rgba(255,255,255,0.1)]"></div>
         {loading && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -105,25 +98,21 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
     );
   }
 
-  // Capa em CSS estilizada como placeholder enquanto carrega ou se não encontrar nada
   const gradient = getGradient(title);
   
   return (
     <div className={`relative shrink-0 rounded-2xl bg-gradient-to-br ${gradient} shadow-lg border border-white/10 flex flex-col justify-between p-2 select-none overflow-hidden transition-transform duration-300 hover:scale-[1.03]
       ${isSmall ? 'w-14 h-20' : 'w-24 h-32'}
     `}>
-      {/* Sombra interna para dar relevo de livro */}
       <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/40 to-transparent"></div>
       <div className="absolute inset-y-0 left-2 w-px bg-white/10"></div>
       
-      {/* Título do Livro */}
       <span className={`font-black tracking-tight leading-tight line-clamp-3 text-white
         ${isSmall ? 'text-[7px] mt-1 ml-1.5' : 'text-[10px] mt-2 ml-2'}
       `}>
         {title}
       </span>
 
-      {/* Autor */}
       <span className={`font-bold opacity-75 truncate text-white/90
         ${isSmall ? 'text-[5px] mb-1 ml-1.5' : 'text-[8px] mb-2 ml-2'}
       `}>
@@ -166,7 +155,6 @@ const Catalogo = () => {
 
   const hasRealBooks = books && books.length > 0;
 
-  // Obter todas as categorias únicas do acervo para exibir no Explorar Coleções
   const categoriasDisponiveis = (() => {
     if (!hasRealBooks) return ['Fantasia', 'Ficção Científica', 'Distopia', 'Drama'];
     const areasSet = new Set();
@@ -176,12 +164,9 @@ const Catalogo = () => {
     return Array.from(areasSet).slice(0, 4); // limite de 4 para o grid do design
   })();
 
-  // Filtrar a lista total de livros com base na busca e categoria selecionada (busca avançada por tokens)
   const filteredBooks = (() => {
-    // Função auxiliar para verificar se as palavras pesquisadas batem com o título ou autor
     const matchesSearchText = (book, query) => {
       if (!query) return true;
-      // Dividir a busca por espaços para suportar "Nome do Livro + Nome do Autor" ao mesmo tempo
       const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
       return tokens.every(token => 
         (book.titulo && book.titulo.toLowerCase().includes(token)) || 
@@ -251,7 +236,6 @@ const Catalogo = () => {
   const isFiltered = (searchQuery && searchQuery !== '') || (selectedCategory && selectedCategory !== 'Todos');
 
   const catalogData = (() => {
-    // Capas reais vindas do Open Library
     const fallbackLançamentos = [
       { id: 'l1', titulo: 'O Senhor dos Anéis', autor: 'J.R.R. Tolkien', area: 'Fantasia', sinopse: 'A jornada de Frodo para destruir o Um Anel e salvar a Terra-média.', stars: 5, imageUrl: 'https://covers.openlibrary.org/b/id/14581335-L.jpg', color: 'from-blue-600/30 to-slate-900/80 border-blue-500/30' },
       { id: 'l2', titulo: 'Duna', autor: 'Frank Herbert', area: 'Ficção Científica', sinopse: 'Um jovem nobre assume a liderança do desértico planeta Arrakis.', stars: 5, imageUrl: 'https://covers.openlibrary.org/b/id/10523456-L.jpg', color: 'from-purple-600/30 to-slate-900/80 border-purple-500/30' },
@@ -285,8 +269,6 @@ const Catalogo = () => {
       };
     }
 
-    // Se tiver livros reais, distribuímos dinamicamente
-    // Lançamentos: Os últimos 3 cadastrados
     const lancamentos = books.slice(-3).reverse().map((b, idx) => {
       const colors = [
         'from-blue-600/30 to-slate-900/80 border-blue-500/30',
@@ -304,7 +286,6 @@ const Catalogo = () => {
       };
     });
 
-    // Recomendados: Próximos 6
     const recomendados = books.slice(0, 6).map(b => ({
       id: b.id,
       titulo: b.titulo,
@@ -312,7 +293,6 @@ const Catalogo = () => {
       stars: 4
     }));
 
-    // Mais Lidos: Calculado com base em reservas (ou os mais antigos se não houver reservas)
     let maisLidos = [];
     if (reservations && reservations.length > 0) {
       const resCounts = {};
@@ -342,7 +322,6 @@ const Catalogo = () => {
     };
   })();
 
-  // Renderizar visualização filtrada (Resultados de busca ou clique na categoria)
   if (isFiltered) {
     return (
       <div className="flex flex-col gap-6">
@@ -428,8 +407,6 @@ const Catalogo = () => {
 
   return (
     <div className="flex flex-col gap-8">
-      
-      {/* 1. Lançamentos / Novidades */}
       <section className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -457,13 +434,11 @@ const Catalogo = () => {
             >
               <BookCover title={b.titulo} author={b.autor} imageUrl={b.imageUrl} size="md" />
 
-              {/* Informações */}
               <div className="flex flex-col justify-between overflow-hidden">
                 <div>
                   <h3 className={`font-bold text-base truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{b.titulo}</h3>
                   <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate mb-1`}>{b.autor}</p>
                   
-                  {/* Estrelas */}
                   <div className="flex gap-0.5 mb-2">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star key={i} size={12} className={i < b.stars ? 'fill-yellow-500 text-yellow-500' : 'text-slate-500'} />
@@ -493,10 +468,8 @@ const Catalogo = () => {
         </div>
       </section>
 
-      {/* 2. Recomendados & Mais Lidos (Layout Split) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         
-        {/* Recomendados (Grid Esquerda) */}
         <div className="xl:col-span-2 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -546,7 +519,6 @@ const Catalogo = () => {
           </div>
         </div>
 
-        {/* Mais Lidos (Lista Direita estilo "Trailer" do print) */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -592,7 +564,6 @@ const Catalogo = () => {
 
       </div>
 
-      {/* 3. Coleções / Categorias */}
       <section className="flex flex-col gap-4">
         <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
           Explorar Coleções
@@ -630,7 +601,6 @@ const Catalogo = () => {
   );
 };
 
-// Ícone simples de Chevron
 const ChevronRightIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/40">
     <path d="m9 18 6-6-6-6"/>
