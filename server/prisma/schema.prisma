@@ -148,3 +148,13 @@ model Configuracao {
 
   @@map("configuracoes")
 }
+
+model Evento {
+  id        String   @id @default(uuid())
+  title     String
+  date      String   // format: YYYY-MM-DD
+  type      String   // type color: 'accent', 'danger', etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("eventos")
+}

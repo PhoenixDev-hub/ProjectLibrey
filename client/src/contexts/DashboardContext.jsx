@@ -61,18 +61,19 @@ export const DashboardProvider = ({ children }) => {
     type: 'accent'
   });
 
-  const handleAddEvent = (e) => {
+  const handleAddEvent = async (e) => {
     e.preventDefault();
     if (!eventForm.date || !eventForm.title) return;
     
-    setCalendarEvents([...calendarEvents, {
-      id: Date.now(),
-      ...eventForm
-    }]);
-    
-    setShowEventModal(false);
-    setEventForm({ date: '', title: '', type: 'accent' });
-    setSuccessMsg('Evento adicionado com sucesso!');
+    try {
+      await api.post('/eventos', eventForm);
+      setShowEventModal(false);
+      setEventForm({ date: '', title: '', type: 'accent' });
+      setSuccessMsg('Evento adicionado com sucesso!');
+      fetchData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.error || 'Erro ao adicionar evento.');
+    }
   };
 
   useEffect(() => {
@@ -124,6 +125,13 @@ export const DashboardProvider = ({ children }) => {
         setLibraryConfig(configRes.data || null);
       } catch (err) {
         console.log("Error loading library config:", err);
+      }
+
+      try {
+        const eventsRes = await api.get('/eventos');
+        setCalendarEvents(eventsRes.data || []);
+      } catch (err) {
+        console.log("Error loading calendar events:", err);
       }
     } catch (err) {
       setErrorMsg('Erro ao obter dados do servidor.');

@@ -37,7 +37,7 @@ export default function Calendar() {
   const month = currentDate.getMonth();
   const today = new Date();
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
-  const currentDay = 12;
+  const currentDay = today.getDate();
 
   // 1. Devoluções/Entregas dinâmicas a partir das reservas (status RETIRADO)
   const safeReservations = Array.isArray(reservations) ? reservations : [];
@@ -95,7 +95,7 @@ export default function Calendar() {
       if (isCurrentMonth) {
         const events = getEventsForDate(dayNumber);
         const hasEvent = events.length > 0;
-        const isToday = dayNumber === currentDay;
+        const isToday = isCurrentMonthReal && dayNumber === currentDay;
         const uniqueTypes = [...new Set(events.map(e => e.type))].slice(0, 3);
 
         cells.push(
