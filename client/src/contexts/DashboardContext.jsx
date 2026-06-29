@@ -19,6 +19,7 @@ export const DashboardProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [duvidas, setDuvidas] = useState([]);
+  const [libraryConfig, setLibraryConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -126,6 +127,13 @@ export const DashboardProvider = ({ children }) => {
         setDuvidas(duvidasRes.data || []);
       } catch (err) {
         console.log("Error loading duvidas:", err);
+      }
+
+      try {
+        const configRes = await api.get('/configuracoes');
+        setLibraryConfig(configRes.data || null);
+      } catch (err) {
+        console.log("Error loading library config:", err);
       }
     } catch (err) {
       setErrorMsg('Erro ao obter dados do servidor.');
@@ -357,6 +365,18 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const handleUpdateLibraryConfig = async (newConfigData) => {
+    try {
+      const res = await api.put('/configuracoes', newConfigData);
+      setLibraryConfig(res.data);
+      setSuccessMsg('Configurações da biblioteca atualizadas com sucesso!');
+      await fetchData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.error || 'Erro ao atualizar configurações da biblioteca.');
+      throw err;
+    }
+  };
+
   const value = {
     user, logout, setUser,
     sidebarOpen, setSidebarOpen,
@@ -387,7 +407,8 @@ export const DashboardProvider = ({ children }) => {
     handleMarkAsRead, handleMarkAllAsRead,
     handleSaveBook, handleDeletarLivro, handleAdicionarExemplar, handleDeletarExemplar,
     handleSaveUser, handleToggleUserStatus, handleUpdateProfile, handleAddEvent,
-    duvidas, setDuvidas, handleCriarDuvida, handleResolverDuvida
+    duvidas, setDuvidas, handleCriarDuvida, handleResolverDuvida,
+    libraryConfig, setLibraryConfig, handleUpdateLibraryConfig
   };
 
   return (

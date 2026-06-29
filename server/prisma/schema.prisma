@@ -138,3 +138,13 @@ model Duvida {
 
   @@map("duvidas")
 }
+
+model Configuracao {
+  id                Int      @id @default(1)
+  prazoDevolucao    Int      @default(30) @map("prazo_devolucao")
+  limiteEmprestimos Int      @default(5) @map("limite_emprestimos")
+  permitirRenovacao Boolean  @default(true) @map("permitir_renovacao")
+  nomeBiblioteca    String   @default("Biblioteca ProjectLibrey") @map("nome_biblioteca")
+
+  @@map("configuracoes")
+}

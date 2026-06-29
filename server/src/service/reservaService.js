@@ -29,6 +29,20 @@ async function criarReservas(usuarioId, livroId) {
         throw new Error("Você já tem uma reserva ativa para este livro");
     }
 
+    const config = await prisma.configuracao.findFirst({ where: { id: 1 } });
+    const limite = config ? config.limiteEmprestimos : 5;
+
+    const totalAtivas = await prisma.reserva.count({
+        where: {
+            usuarioId,
+            status: { in: ["PENDENTE", "APROVADO", "RETIRADO"] }
+        }
+    });
+
+    if (totalAtivas >= limite) {
+        throw new Error(`Você atingiu o limite de ${limite} reservas/empréstimos ativos simultâneos.`);
+    }
+
     const resultado = await prisma.$transaction(async (tx) => {
         const reserva = await tx.reserva.create({
             data: {
@@ -187,8 +201,11 @@ async function registrarRetirada(reservaId) {
     }
 
     const now = new Date();
+    const config = await prisma.configuracao.findFirst({ where: { id: 1 } });
+    const diasPrazo = config ? config.prazoDevolucao : 30;
+
     const prazoDevol = new Date(now);
-    prazoDevol.setDate(prazoDevol.getDate() + 30);
+    prazoDevol.setDate(prazoDevol.getDate() + diasPrazo);
 
     await prisma.$transaction(async (tx) => {
         await tx.reserva.update({
