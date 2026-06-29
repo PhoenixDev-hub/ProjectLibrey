@@ -251,12 +251,12 @@ export const ReservaModal = () => {
     books, 
     users, 
     user: loggedUser, 
-    handleReservarLivro 
+    handleReservarLivro,
+    getCDDAreaName
   } = useDashboard();
 
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(loggedUser?.tipoUsuario);
 
-  // Steps: 1: Select User (Librarian only), 2: Select Book, 3: Confirm
   const [step, setStep] = useState(1); 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
@@ -275,11 +275,9 @@ export const ReservaModal = () => {
 
   const isDark = theme === 'dark';
 
-  // Lists
   const safeUsers = Array.isArray(users) ? users : [];
   const safeBooks = Array.isArray(books) ? books : [];
 
-  // Filtered Users (exclude librarians and admins)
   const filteredUsers = safeUsers.filter(u => {
     if (['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(u.tipoUsuario)) return false;
     const term = userSearch.toLowerCase();
@@ -289,17 +287,17 @@ export const ReservaModal = () => {
     return fullName.includes(term) || email.includes(term) || room.includes(term);
   });
 
-  // Filtered Books
   const filteredBooks = safeBooks.filter(b => {
     const term = bookSearch.toLowerCase();
+    const friendlyArea = getCDDAreaName(b.area).toLowerCase();
     return (
       (b.titulo && b.titulo.toLowerCase().includes(term)) ||
       (b.autor && b.autor.toLowerCase().includes(term)) ||
-      (b.area && b.area.toLowerCase().includes(term))
+      (b.area && b.area.toLowerCase().includes(term)) ||
+      friendlyArea.includes(term)
     );
   });
 
-  // Recommendations: top 4 books
   const recommendedBooks = safeBooks.slice(0, 4);
 
   const handleClose = () => {
@@ -340,7 +338,6 @@ export const ReservaModal = () => {
       <div className={`relative w-full max-w-xl rounded-[32px] border p-6 shadow-2xl z-[110] transition-all duration-300
         ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-gray-200 text-slate-900'}
       `}>
-        {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-xl font-bold flex items-center gap-2">
@@ -356,7 +353,6 @@ export const ReservaModal = () => {
           </button>
         </div>
 
-        {/* Error Alert */}
         {errorMsg && (
           <div className="bg-rose-500/10 border border-rose-500/25 text-rose-500 px-4 py-3 rounded-2xl text-xs font-semibold mb-4 flex items-center gap-2">
             <AlertCircle size={16} className="shrink-0" />
@@ -364,7 +360,6 @@ export const ReservaModal = () => {
           </div>
         )}
 
-        {/* Wizard Steps indicator (Librarian only) */}
         {ehBibliotecaria && (
           <div className="flex items-center gap-2 mb-6 text-xs font-bold justify-center">
             <span className={`px-3 py-1.5 rounded-full transition ${step === 1 ? 'bg-sky-500 text-slate-950' : (selectedUser ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-800 text-slate-500')}`}>
@@ -381,7 +376,6 @@ export const ReservaModal = () => {
           </div>
         )}
 
-        {/* Step 1: Select User (Librarian only) */}
         {step === 1 && ehBibliotecaria && (
           <div className="flex flex-col gap-4">
             <label className="text-sm font-bold">Quem é o leitor que está solicitando?</label>
@@ -430,7 +424,6 @@ export const ReservaModal = () => {
           </div>
         )}
 
-        {/* Step 2: Select Book (Both Student and Librarian) */}
         {step === 2 && (
           <div className="flex flex-col gap-4">
             <div className="flex justify-between items-center">
@@ -458,7 +451,6 @@ export const ReservaModal = () => {
             <div className={`border rounded-2xl overflow-hidden ${isDark ? 'border-white/10 bg-slate-950/40' : 'border-gray-200 bg-gray-50'}`}>
               <div className="max-h-60 overflow-y-auto divide-y divide-slate-700/30">
                 {bookSearch.trim() === '' ? (
-                  /* Show Recommendations if not searching */
                   <div>
                     <div className="px-3.5 py-2.5 flex items-center gap-1.5 text-[10px] font-bold text-amber-500 bg-amber-500/5">
                       <Sparkles size={12} />
@@ -481,14 +473,13 @@ export const ReservaModal = () => {
                             <p className="text-[10px] text-slate-400 mt-0.5">Autor: {b.autor}</p>
                           </div>
                           <span className={`px-2 py-0.5 rounded-md font-bold uppercase text-[9px] ${isDark ? 'bg-slate-800 text-slate-350' : 'bg-gray-200 text-slate-700'}`}>
-                            {b.area}
+                            {getCDDAreaName(b.area)}
                           </span>
                         </button>
                       ))
                     )}
                   </div>
                 ) : (
-                  /* Show Search Results */
                   <div>
                     <div className="px-3.5 py-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-500/5">
                       RESULTADOS DA BUSCA
@@ -510,7 +501,7 @@ export const ReservaModal = () => {
                             <p className="text-[10px] text-slate-400 mt-0.5">Autor: {b.autor}</p>
                           </div>
                           <span className={`px-2 py-0.5 rounded-md font-bold uppercase text-[9px] ${isDark ? 'bg-slate-800 text-slate-350' : 'bg-gray-200 text-slate-700'}`}>
-                            {b.area}
+                            {getCDDAreaName(b.area)}
                           </span>
                         </button>
                       ))
@@ -520,7 +511,6 @@ export const ReservaModal = () => {
               </div>
             </div>
             
-            {/* Back button (Librarian only) */}
             {ehBibliotecaria && (
               <button
                 type="button"
@@ -535,13 +525,11 @@ export const ReservaModal = () => {
           </div>
         )}
 
-        {/* Step 3: Confirm reservation */}
         {step === 3 && selectedBook && (
           <form onSubmit={handleConfirm} className="flex flex-col gap-5">
             <h4 className="text-sm font-bold text-center mb-1">Confirmar Solicitação de Reserva</h4>
 
             <div className="flex flex-col gap-3">
-              {/* Leitor summary (Librarian only) */}
               {ehBibliotecaria && selectedUser && (
                 <div className={`p-4 rounded-2xl border flex gap-3 items-center ${isDark ? 'bg-slate-950/50 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
                   <User size={20} className="text-sky-500 shrink-0" />
@@ -553,18 +541,16 @@ export const ReservaModal = () => {
                 </div>
               )}
 
-              {/* Livro summary */}
               <div className={`p-4 rounded-2xl border flex gap-3 items-center ${isDark ? 'bg-slate-950/50 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
                 <BookOpen size={20} className="text-amber-500 shrink-0" />
                 <div className="text-xs font-semibold leading-snug">
                   <p className="font-bold text-[10px] uppercase text-slate-450 tracking-wider">Livro:</p>
                   <p className={isDark ? 'text-white' : 'text-slate-900'}>{selectedBook.titulo}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Autor: {selectedBook.autor} • Área: {selectedBook.area}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Autor: {selectedBook.autor} • Área: {getCDDAreaName(selectedBook.area)}</p>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3 pt-3">
               <button
                 type="button"

@@ -1,8 +1,33 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
-
 const DashboardContext = createContext({});
+
+const getCDDAreaName = (areaCode) => {
+  if (!areaCode) return 'Geral';
+  const areaValue = String(areaCode);
+  
+  const match = areaValue.match(/(?:CDD|CDU)-?(\d+)/i);
+  if (!match) {
+    if (areaValue.trim().length > 0) return areaValue.trim();
+    return 'Geral';
+  }
+  
+  const codeNum = parseInt(match[1], 10);
+  
+  if (codeNum >= 0 && codeNum < 100) return 'Generalidades';
+  if (codeNum >= 100 && codeNum < 200) return 'Filosofia e Psicologia';
+  if (codeNum >= 200 && codeNum < 300) return 'Religião';
+  if (codeNum >= 300 && codeNum < 400) return 'Ciências Sociais';
+  if (codeNum >= 400 && codeNum < 500) return 'Línguas e Linguística';
+  if (codeNum >= 500 && codeNum < 600) return 'Ciências Exatas';
+  if (codeNum >= 600 && codeNum < 700) return 'Tecnologia';
+  if (codeNum >= 700 && codeNum < 800) return 'Artes e Esportes';
+  if (codeNum >= 800 && codeNum < 900) return 'Literatura';
+  if (codeNum >= 900 && codeNum < 1000) return 'Geografia e História';
+  
+  return 'Geral';
+};
 
 export const DashboardProvider = ({ children }) => {
   const { user, logout, setUser } = useAuth();
@@ -408,7 +433,8 @@ export const DashboardProvider = ({ children }) => {
     handleSaveUser, handleToggleUserStatus, handleUpdateProfile, handleAddEvent,
     duvidas, setDuvidas, handleCriarDuvida, handleResolverDuvida,
     libraryConfig, setLibraryConfig, handleUpdateLibraryConfig,
-    showReservaModal, setShowReservaModal
+    showReservaModal, setShowReservaModal,
+    getCDDAreaName
   };
 
   return (
