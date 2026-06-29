@@ -9,8 +9,11 @@ const router = express.Router()
 
 router.post('/', autenticar, async (req, res) => {
   try {
-    const { livroId } = req.body
-    const reserva = await criarReservas(req.usuario.id, livroId)
+    const { livroId, usuarioId } = req.body
+    const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(req.usuario.tipoUsuario)
+    const targetUsuarioId = (ehBibliotecaria && usuarioId) ? Number(usuarioId) : req.usuario.id
+    
+    const reserva = await criarReservas(targetUsuarioId, livroId)
     res.status(201).json({ mensagem: 'Reserva solicitada com sucesso.', reserva })
   } catch (err) {
     res.status(400).json({ erro: err.message })

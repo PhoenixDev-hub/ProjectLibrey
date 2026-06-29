@@ -3,7 +3,7 @@ import { useDashboard } from "../../../contexts/DashboardContext";
 import { BookOpen, AlertCircle, Bookmark, Users } from "lucide-react";
 
 const Inicio = () => {
-  const { theme, user, reservations, users } = useDashboard();
+  const { theme, user, reservations, users, setShowReservaModal } = useDashboard();
   const isDark = theme === 'dark';
 
   const safeReservations = Array.isArray(reservations) ? reservations : [];
@@ -93,11 +93,11 @@ const Inicio = () => {
             <p className="opacity-90 font-medium mb-6">Aqui está o resumo das atividades da biblioteca hoje. Tudo pronto para começar?</p>
             
             <div className="flex gap-4">
-              <button className="bg-white text-slate-900 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-sm text-sm">
-                Novo Empréstimo
-              </button>
-              <button className="bg-black/20 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-black/30 transition shadow-sm text-sm border border-white/20">
-                Ver Relatórios
+              <button 
+                onClick={() => setShowReservaModal(true)}
+                className="bg-white text-slate-900 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-sm text-sm"
+              >
+                Nova Reserva
               </button>
             </div>
           </div>

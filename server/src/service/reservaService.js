@@ -170,7 +170,7 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
                     usuarioId: reserva.usuarioId,
                     reservaId: null,
                     tipo: "RESERVA_REJEITADA",
-                    titulo: `Reserva rejeitada para ${reserva.exemplar.livro.titulo}`,
+                    titulo: `Reserva rejei\tada para ${reserva.exemplar.livro.titulo}`,
                     mensagem: `Sua reserva para o livro ${reserva.exemplar.livro.titulo} foi rejeitada.`
                 }
             });

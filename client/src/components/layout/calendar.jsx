@@ -26,7 +26,7 @@ const borderColors = {
 };
 
 export default function Calendar() {
-  const { theme, calendarEvents, user, setShowEventModal } = useDashboard();
+  const { theme, calendarEvents, user, setShowEventModal, reservations } = useDashboard();
   const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1));
   const [showAllEvents, setShowAllEvents] = useState(false);
   
@@ -39,12 +39,47 @@ export default function Calendar() {
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
   const currentDay = 12;
 
+  // 1. Devoluções/Entregas dinâmicas a partir das reservas (status RETIRADO)
+  const safeReservations = Array.isArray(reservations) ? reservations : [];
+  const activeLoans = ehBibliotecaria 
+    ? safeReservations.filter(r => r.status === 'RETIRADO')
+    : safeReservations.filter(r => r.status === 'RETIRADO' && r.usuarioId === user?.id);
+
+  const loanEvents = activeLoans
+    .filter(r => r.prazoDevol)
+    .map(r => {
+      const dateObj = new Date(r.prazoDevol);
+      const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+      
+      return {
+        id: `loan-${r.id}`,
+        date: dateStr,
+        title: ehBibliotecaria
+          ? `Entrega: ${r.exemplar?.livro?.titulo || 'Livro'} (${r.usuario?.nome || 'Leitor'})`
+          : `Entregar: ${r.exemplar?.livro?.titulo || 'Livro'}`,
+        type: 'danger'
+      };
+    });
+
+  // 2. Filtrar os eventos customizados da biblioteca (remover empréstimos estáticos)
+  const customEvents = calendarEvents.filter(e => {
+    const titleLower = e.title.toLowerCase();
+    const isLoanEvent = titleLower.startsWith('devolver:') || 
+                        titleLower.startsWith('retirar:') || 
+                        titleLower.startsWith('entregar:') || 
+                        titleLower.startsWith('entrega:');
+    return !isLoanEvent;
+  });
+
+  // 3. Unir eventos
+  const allEvents = [...loanEvents, ...customEvents];
+
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
   const getEventsForDate = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return calendarEvents.filter(e => e.date === dateStr);
+    return allEvents.filter(e => e.date === dateStr);
   };
 
   const renderDays = () => {
@@ -95,7 +130,7 @@ export default function Calendar() {
     return cells;
   };
 
-  const monthEvents = calendarEvents.filter(e => {
+  const monthEvents = allEvents.filter(e => {
     const [y, m] = e.date.split('-').map(Number);
     return y === year && m === month + 1;
   });
@@ -142,14 +177,18 @@ export default function Calendar() {
           {renderDays()}
         </div>
 
-        <div className="flex items-center gap-4 mt-6 text-xs font-semibold text-slate-500 justify-center">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-6 text-[10px] font-bold text-slate-505 justify-center">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-            <span>Retirar Livro</span>
+            <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>{ehBibliotecaria ? 'Entrega de Livro / Fechada' : 'Minha Entrega / Fechada'}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-            <span>Devolver Livro</span>
+            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span>Evento</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>Aviso</span>
           </div>
         </div>
       </div>

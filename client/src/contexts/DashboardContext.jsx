@@ -30,19 +30,9 @@ export const DashboardProvider = ({ children }) => {
   const [showUserModal, setShowUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showReservaModal, setShowReservaModal] = useState(false);
 
-  const [calendarEvents, setCalendarEvents] = useState([
-    { id: 1, date: '2026-06-07', title: 'Devolver: 1984', type: 'danger' },
-    { id: 2, date: '2026-06-07', title: 'Retirar: O Hobbit', type: 'accent' },
-    { id: 3, date: '2026-06-12', title: 'Devolver: Dom Casmurro', type: 'warning' },
-    { id: 4, date: '2026-06-14', title: 'Retirar: O Pequeno Príncipe', type: 'success' },
-    { id: 5, date: '2026-06-16', title: 'Devolver: Harry Potter', type: 'danger' },
-    { id: 6, date: '2026-06-16', title: 'Retirar: Sapiens', type: 'accent' },
-    { id: 7, date: '2026-06-20', title: 'Devolver: O Senhor dos Anéis', type: 'danger' },
-    { id: 8, date: '2026-06-28', title: 'Devolver: A Menina que Roubava Livros', type: 'warning' },
-    { id: 9, date: '2026-06-10', title: 'Feira do Livro 2026', type: 'accent' },
-    { id: 10, date: '2026-06-25', title: 'Clube de Leitura: Suspense', type: 'warning' }
-  ]);
+  const [calendarEvents, setCalendarEvents] = useState([]);
 
   const [bookForm, setBookForm] = useState({
     titulo: '',
@@ -159,13 +149,14 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [successMsg, errorMsg]);
 
-  const handleReservarLivro = async (livroId) => {
+  const handleReservarLivro = async (livroId, usuarioId) => {
     try {
-      await api.post('/reservas', { livroId });
+      await api.post('/reservas', { livroId, usuarioId });
       setSuccessMsg('Reserva solicitada com sucesso!');
-      fetchData();
+      await fetchData();
     } catch (err) {
       setErrorMsg(err.response?.data?.erro || err.response?.data?.error || 'Erro ao realizar reserva.');
+      throw err;
     }
   };
 
@@ -408,7 +399,8 @@ export const DashboardProvider = ({ children }) => {
     handleSaveBook, handleDeletarLivro, handleAdicionarExemplar, handleDeletarExemplar,
     handleSaveUser, handleToggleUserStatus, handleUpdateProfile, handleAddEvent,
     duvidas, setDuvidas, handleCriarDuvida, handleResolverDuvida,
-    libraryConfig, setLibraryConfig, handleUpdateLibraryConfig
+    libraryConfig, setLibraryConfig, handleUpdateLibraryConfig,
+    showReservaModal, setShowReservaModal
   };
 
   return (

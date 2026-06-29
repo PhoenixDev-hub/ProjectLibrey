@@ -1,7 +1,7 @@
 import React from 'react';
 import { DashboardProvider, useDashboard } from '../../contexts/DashboardContext';
 import DashboardShell from '../../components/layout/DashboardShell';
-import { BookModal, UserModal } from '../../components/layout/DashboardModals';
+import { BookModal, EventModal, ReservaModal, UserModal } from '../../components/layout/DashboardModals';
 
 import Inicio from './components/Inicio';
 import Catalogo from './components/Catalogo';
@@ -12,7 +12,7 @@ import Ajuda from './components/Ajuda';
 import Configuracoes from './components/Configuracoes';
 
 const DashboardContent = () => {
-  const { activeTab, menuItems } = useDashboard();
+  const { activeTab, user } = useDashboard();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -29,7 +29,7 @@ const DashboardContent = () => {
       case 'ajuda':
         return <Ajuda />;
       case 'configuracoes':
-        return <Configuracoes />;
+        return ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario) ? <Configuracoes /> : <Inicio />;
       default:
         return (
           <div className="min-h-[calc(100vh-3rem)] flex items-center justify-center">
@@ -53,6 +53,8 @@ const DashboardContent = () => {
       {renderContent()}
       <BookModal />
       <UserModal />
+      <ReservaModal />
+      <EventModal />
     </DashboardShell>
   );
 };

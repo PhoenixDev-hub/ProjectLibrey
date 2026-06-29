@@ -32,7 +32,7 @@ const DashboardShell = ({ children }) => {
     { id: 'reservas', label: 'Reservas', icon: Calendar },
     { id: 'ajuda', label: 'Central de ajuda', icon: HelpCircle },
     { id: 'leitores', label: 'Leitores', icon: Users, roles: ['BIBLIOTECARIA', 'ADMINISTRADOR'] },
-    { id: 'configuracoes', label: 'Configurações', icon: Settings },
+    { id: 'configuracoes', label: 'Configurações', icon: Settings, roles: ['BIBLIOTECARIA', 'ADMINISTRADOR'] },
   ];
 
   const menuItems = allMenuItems.filter(
