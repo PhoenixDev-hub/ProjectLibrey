@@ -24,6 +24,7 @@ model Usuario {
   reservas          Reserva[]
   reservasAprovadas Reserva[] @relation("ReservasAprovadas")
   notificacoes      Notificacao[]
+  duvidas           Duvida[]
 
   @@map("usuarios")
 }
@@ -122,4 +123,18 @@ model Notificacao {
   reserva   Reserva? @relation(fields: [reservaId], references: [id])
 
   @@map("notificacoes")
+}
+
+model Duvida {
+  id          String    @id @default(uuid())
+  usuarioId   Int       @map("usuario_id")
+  duvida      String
+  resposta    String?
+  resolvida   Boolean   @default(false)
+  resolvidaEm DateTime? @map("resolvida_em")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("duvidas")
 }

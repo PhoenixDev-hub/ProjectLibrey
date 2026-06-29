@@ -15,6 +15,7 @@ import notificacaoRoutes from "./src/routes/notificacaoRoutes.js"
 import passwordResetRoutes from "./src/routes/password-reset.routes.js"
 import reservaRoutes from "./src/routes/reservaRoutes.js"
 import usuarioRoutes from "./src/routes/usuario.routes.js"
+import duvidaRoutes from "./src/routes/duvida.routes.js"
 import logger from "./src/utils/logger.js"
 
 const config = initConfig()
@@ -45,6 +46,7 @@ app.use("/exemplares", generalLimiter, exemplarRoutes)
 
 app.use("/notificacoes", autenticar, notificacaoRoutes)
 app.use("/reservas", autenticar, reservaRoutes)
+app.use("/duvidas", autenticar, duvidaRoutes)
 
 
 app.get("/", (req, res) => {

@@ -18,6 +18,7 @@ export const DashboardProvider = ({ children }) => {
   const [reservations, setReservations] = useState([]);
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [duvidas, setDuvidas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -118,6 +119,13 @@ export const DashboardProvider = ({ children }) => {
         setNotifications(notifRes.data.notificacoes || []);
       } catch (err) {
         console.log("Error loading notifications:", err);
+      }
+
+      try {
+        const duvidasRes = await api.get('/duvidas');
+        setDuvidas(duvidasRes.data || []);
+      } catch (err) {
+        console.log("Error loading duvidas:", err);
       }
     } catch (err) {
       setErrorMsg('Erro ao obter dados do servidor.');
@@ -327,6 +335,28 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  const handleCriarDuvida = async (duvidaText) => {
+    try {
+      await api.post('/duvidas', { duvida: duvidaText });
+      setSuccessMsg('Sua dúvida foi enviada com sucesso para a bibliotecária!');
+      await fetchData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.error || 'Erro ao enviar dúvida.');
+      throw err;
+    }
+  };
+
+  const handleResolverDuvida = async (duvidaId, resposta) => {
+    try {
+      await api.patch(`/duvidas/${duvidaId}/resolver`, { resposta });
+      setSuccessMsg('Dúvida respondida/resolvida com sucesso!');
+      await fetchData();
+    } catch (err) {
+      setErrorMsg(err.response?.data?.error || 'Erro ao resolver dúvida.');
+      throw err;
+    }
+  };
+
   const value = {
     user, logout, setUser,
     sidebarOpen, setSidebarOpen,
@@ -356,7 +386,8 @@ export const DashboardProvider = ({ children }) => {
     handleReservarLivro, handleAtualizarReservaStatus, handleRegistrarRetirada, handleRegistrarDevolucao,
     handleMarkAsRead, handleMarkAllAsRead,
     handleSaveBook, handleDeletarLivro, handleAdicionarExemplar, handleDeletarExemplar,
-    handleSaveUser, handleToggleUserStatus, handleUpdateProfile, handleAddEvent
+    handleSaveUser, handleToggleUserStatus, handleUpdateProfile, handleAddEvent,
+    duvidas, setDuvidas, handleCriarDuvida, handleResolverDuvida
   };
 
   return (
