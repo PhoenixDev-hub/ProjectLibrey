@@ -1,445 +1,294 @@
-# Biblioteca Acadêmica — Sistema de Gerenciamento
+# ProjectLibrey
 
-Sistema digital de gerenciamento para bibliotecas acadêmicas, desenvolvido para substituir os processos manuais em papel que historicamente geram perda de livros, reservas extraviadas e dificuldade de controle do acervo. A solução centraliza as operações de reserva, devolução e consulta do acervo em uma plataforma web acessível a alunos, professores e bibliotecários, reduzindo a burocracia e aumentando a rastreabilidade de cada exemplar.
+Sistema web para gerenciamento de biblioteca escolar/acadêmica, com catálogo digital, reservas, empréstimos, leitores, notificações, dúvidas e configurações administrativas.
 
-O projeto encontra-se em fase avançada de desenvolvimento, com as funcionalidades principais implementadas e ajustes finais em andamento.
+O projeto é dividido em duas aplicações independentes:
 
----
+- `client/`: front-end em React, responsável pela interface do usuário.
+- `server/`: back-end em Node.js/Express, responsável pela API, autenticação, regras de negócio e banco de dados.
 
-## O Problema que o Sistema Resolve
+## Visão Geral
 
-Bibliotecas acadêmicas que ainda operam com fichas e registros em papel enfrentam problemas recorrentes:
+ProjectLibrey foi criado para substituir controles manuais de biblioteca por um fluxo digital mais rastreável. A aplicação permite que alunos e professores consultem livros, solicitem reservas e acompanhem prazos, enquanto bibliotecários administram acervo, leitores, reservas, empréstimos e configurações.
 
-- Reservas perdidas ou ilegíveis por erro de preenchimento manual
-- Dificuldade em saber se um livro está disponível, emprestado ou extraviado
-- Ausência de histórico confiável de quem retirou cada exemplar
-- Processo de devolução lento e dependente da presença física do bibliotecário para consultar registros
+## Principais Funcionalidades
 
-Este sistema elimina o papel do fluxo operacional da biblioteca, substituindo-o por registros digitais auditáveis, consultas em tempo real e um painel administrativo para os bibliotecários gerenciarem o acervo com precisão.
+### Usuários
 
----
+- Cadastro e login com autenticação JWT.
+- Perfis de acesso para aluno, professor, bibliotecária e administrador.
+- Atualização de dados de perfil.
+- Recuperação de senha por e-mail.
 
-## Funcionalidades
+### Catálogo
 
-### Para Alunos e Professores
+- Listagem de livros do acervo.
+- Busca por título, autor e área.
+- Exibição de capas por busca externa quando o livro não possui imagem cadastrada.
+- Favoritos para alunos.
+- Detalhes do livro em modal.
 
-- Cadastro e autenticação na plataforma
-- Consulta ao catálogo de livros disponíveis com busca por título, autor ou categoria
-- Reserva de livros diretamente pelo sistema, sem necessidade de deslocamento até a biblioteca
-- Visualização do status da reserva (pendente, ativa, concluída ou cancelada)
-- Acompanhamento do prazo de devolução dos livros retirados
+### Reservas e Empréstimos
 
-### Para Bibliotecários
+- Solicitação de reserva por alunos/professores.
+- Criação de reserva para leitores pela bibliotecária.
+- Aprovação e rejeição de reservas.
+- Registro de retirada e devolução.
+- Controle de prazos e atrasos.
 
-- Painel administrativo para gerenciamento completo do acervo
-- Registro de entradas e saídas de exemplares
-- Controle de prazos de devolução com visibilidade sobre atrasos
-- Consulta ao histórico de reservas por usuário ou por livro
-- Gerenciamento de cadastros de usuários (alunos e professores)
+### Administração
 
----
+- Cadastro e edição de livros.
+- Cadastro e edição de leitores.
+- Controle de status de usuários.
+- Configurações da biblioteca.
+- Central de dúvidas.
+- Notificações internas.
 
-## Arquitetura da Solução
+## Stack Técnica
 
-O sistema é dividido em duas camadas independentes que se comunicam via API RESTful:
+### Front-end
 
-- **Backend (servidor):** responsável pela lógica de negócio, autenticação, validação de dados e persistência no banco de dados.
-- **Frontend (cliente):** interface web responsiva acessada pelo navegador, que consome a API do backend.
+- React 19
+- Vite
+- React Router
+- Tailwind CSS
+- Axios
+- Lucide React
 
-Ambas as camadas podem ser executadas localmente ou em containers Docker, facilitando o deploy em qualquer ambiente.
+Documentação específica: [client/README.md](client/README.md)
 
----
+### Back-end
 
-## Tecnologias Utilizadas
+- Node.js
+- Express
+- Prisma ORM
+- PostgreSQL
+- JWT
+- bcrypt
+- Zod
+- Nodemailer
+- Winston
 
-### Backend
+Documentação específica: [server/README.md](server/README.md)
 
-| Tecnologia | Finalidade |
-|---|---|
-| Node.js 20+ | Runtime JavaScript no servidor |
-| Express | Framework web para construção da API |
-| Prisma | ORM para acesso e migração do banco de dados |
-| PostgreSQL 16+ | Banco de dados relacional principal |
-| JWT | Emissão e validação de tokens de autenticação |
-| Zod | Validação e parsing de schemas de entrada |
-| Winston | Logging estruturado em múltiplos níveis |
-| Express Rate Limit | Controle de taxa de requisições por cliente |
-| bcrypt | Hash seguro de senhas com salting |
+## Estrutura do Projeto
 
-### Frontend
-
-| Tecnologia | Finalidade |
-|---|---|
-| React 19 | Biblioteca para construção da interface |
-| Vite | Ferramenta de build e servidor de desenvolvimento |
-| Tailwind CSS | Estilização utilitária e responsiva |
-| React Router | Roteamento declarativo no lado do cliente |
-| Lucide React | Biblioteca de ícones SVG |
-| Axios | Cliente HTTP com suporte a interceptores |
-| JWT Decode | Leitura e decodificação de tokens JWT no cliente |
-
----
+```txt
+ProjectLibrey/
+├── client/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   └── styles/
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+│
+├── server/
+│   ├── lib/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   ├── schema.prisma
+│   │   └── seed.js
+│   ├── scripts/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── cronjobs/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   ├── schemas/
+│   │   ├── service/
+│   │   └── utils/
+│   ├── index.js
+│   └── package.json
+│
+├── Livros.csv
+├── docker-compose.yml
+└── README.md
+```
 
 ## Pré-requisitos
 
 - Node.js 20 ou superior
-- npm ou yarn
-- PostgreSQL 16 ou superior (dispensável caso utilize Docker)
-- Docker e Docker Compose (necessário apenas para deploy em containers)
+- npm
+- PostgreSQL
+- Git
 
----
+Docker Compose existe no repositório, mas os Dockerfiles de `client/` e `server/` não estão presentes atualmente. Para desenvolvimento, use a execução local descrita abaixo.
 
-## Instalação e Configuração
+## Configuração Rápida
 
-### 1. Clonar o repositório
-
-```bash
-git clone <url-do-repositorio>
-cd ProjectLibrary
-```
-
-### 2. Configurar variáveis de ambiente
-
-#### Backend
-
-```bash
-cp server/.env.example server/.env
-```
-
-Edite o arquivo `server/.env`:
-
-```env
-DATABASE_URL="postgresql://usuario:senha@localhost:5432/project_library"
-JWT_SECRET="sua-chave-super-secreta-minimo-32-caracteres"
-PORT=3333
-NODE_ENV="development"
-CORS_ORIGIN="http://localhost:5173,http://localhost:3000"
-```
-
-#### Frontend
-
-```bash
-cp client/.env.example client/.env.local
-```
-
-Edite o arquivo `client/.env.local`:
-
-```env
-VITE_API_URL="http://localhost:3333"
-VITE_APP_NAME="Biblioteca Academica"
-```
-
-### 3. Instalar dependências e configurar o banco de dados
-
-#### Backend
+### 1. Instalar dependências do back-end
 
 ```bash
 cd server
 npm install
-npx prisma generate
-npx prisma migrate dev
-cd ..
 ```
 
-O comando `prisma migrate dev` aplica todas as migrations pendentes e sincroniza o schema com o banco de dados.
-
-#### Frontend
+### 2. Configurar ambiente do back-end
 
 ```bash
-cd client
-npm install
-cd ..
+cp .env.example .env
 ```
 
----
+Edite `server/.env`:
 
-## Execução em Ambiente de Desenvolvimento
+```env
+NODE_ENV=development
+PORT=3333
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/project_librey
+JWT_SECRET=sua-chave-secreta
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGIN=http://localhost:5173
+```
 
-### Opção 1: Inicialização manual
+### 3. Preparar banco de dados
 
-Terminal 1 — Backend:
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+Opcionalmente, importe livros do CSV:
+
+```bash
+npm run prisma:seed
+```
+
+### 4. Instalar dependências do front-end
+
+```bash
+cd ../client
+npm install
+```
+
+Crie `client/.env.local` se precisar apontar para outra URL de API:
+
+```env
+VITE_API_URL=http://localhost:3333
+```
+
+## Execução em Desenvolvimento
+
+Abra dois terminais.
+
+Terminal 1:
 
 ```bash
 cd server
 npm run start:dev
 ```
 
-Terminal 2 — Frontend:
+Terminal 2:
 
 ```bash
 cd client
 npm run dev
 ```
 
-### Opção 2: Docker Compose (recomendado)
-
-```bash
-docker-compose up -d
-```
-
-Após a inicialização, os serviços estarão disponíveis em:
+URLs padrão:
 
 | Serviço | URL |
 |---|---|
-| Frontend | http://localhost:5173 |
-| API | http://localhost:3333 |
-| Health check | http://localhost:3333/health |
+| Front-end | `http://localhost:5173` |
+| API | `http://localhost:3333` |
+| Health check | `http://localhost:3333/health` |
 
----
+## Scripts Principais
 
-## Build para Produção
+### Front-end
 
-### Backend
-
-```bash
-cd server
-npm install --production
-```
-
-### Frontend
-
-```bash
-cd client
-npm run build
-```
-
-Os arquivos estáticos gerados serão disponibilizados no diretório `client/dist/`, prontos para serem servidos por Nginx, Caddy ou qualquer servidor de arquivos estáticos.
-
----
-
-## Deploy com Docker
-
-### Build das imagens
-
-```bash
-docker build -t project-library-server ./server
-docker build -t project-library-client ./client
-```
-
-### Executar via Docker Compose
-
-```bash
-docker-compose -f docker-compose.yml up -d
-```
-
-### Variáveis de ambiente para produção
-
-```env
-DATABASE_URL="postgresql://usuario:senha@seu-db-host:5432/project_library"
-JWT_SECRET="gere-uma-chave-longa-aleatoria-e-segura"
-PORT=3333
-NODE_ENV="production"
-CORS_ORIGIN="https://seudominio.com"
-```
-
-Em ambiente de produção, utilize um gerenciador de segredos (como variáveis de ambiente injetadas pelo orquestrador, AWS Secrets Manager ou HashiCorp Vault) para proteger as credenciais sensíveis.
-
----
-
-## Perfis de Usuário
-
-O sistema opera com três perfis distintos, cada um com permissões específicas:
-
-| Perfil | Descrição |
+| Comando | Descrição |
 |---|---|
-| Aluno | Consulta o catálogo, realiza reservas e acompanha prazos de devolução |
-| Professor | Mesmas permissões do aluno, podendo ter prazos de empréstimo diferenciados |
-| Bibliotecário | Acesso ao painel administrativo; gerencia o acervo, usuários e devoluções |
+| `npm run dev` | Inicia o Vite em modo desenvolvimento |
+| `npm run build` | Gera build de produção em `client/dist/` |
+| `npm run preview` | Serve o build localmente |
+| `npm run lint` | Executa ESLint |
 
----
+### Back-end
 
-## Referência da API
+| Comando | Descrição |
+|---|---|
+| `npm run start:dev` | Inicia a API com Nodemon |
+| `npm start` | Inicia a API com Node |
+| `npm run prisma:generate` | Gera o Prisma Client |
+| `npm run prisma:migrate` | Executa migrations em desenvolvimento |
+| `npm run prisma:seed` | Importa dados do seed |
 
-### Autenticação
+## Rotas Principais da API
 
-| Método | Rota | Descrição | Acesso |
-|---|---|---|---|
-| POST | `/login` | Autenticar usuário e obter token JWT | Público |
-| POST | `/cadastro` | Registrar novo usuário | Público |
+| Grupo | Rotas |
+|---|---|
+| Autenticação | `/login`, `/cadastro`, `/me` |
+| Recuperação de senha | `/password-reset` |
+| Livros | `/livros` |
+| Exemplares | `/exemplares` |
+| Reservas | `/reservas` |
+| Usuários | `/usuarios` |
+| Notificações | `/notificacoes` |
+| Dúvidas | `/duvidas` |
+| Configurações | `/configuracoes` |
+| Eventos | `/eventos` |
 
-### Acervo
+Rotas protegidas exigem:
 
-| Método | Rota | Descrição | Acesso |
-|---|---|---|---|
-| GET | `/livros` | Listar todos os livros do acervo | Autenticado |
-| GET | `/livros/:id` | Consultar detalhes de um livro específico | Autenticado |
-| POST | `/livros` | Adicionar novo livro ao acervo | Bibliotecário |
-| PUT | `/livros/:id` | Atualizar informações de um livro | Bibliotecário |
-| DELETE | `/livros/:id` | Remover livro do acervo | Bibliotecário |
-
-### Reservas
-
-| Método | Rota | Descrição | Acesso |
-|---|---|---|---|
-| GET | `/reservas` | Listar reservas do usuário autenticado | Autenticado |
-| POST | `/reservas` | Criar uma nova reserva | Autenticado |
-| PUT | `/reservas/:id` | Atualizar status de uma reserva | Bibliotecário |
-| DELETE | `/reservas/:id` | Cancelar uma reserva | Autenticado |
-
-### Monitoramento
-
-| Método | Rota | Descrição |
-|---|---|---|
-| GET | `/health` | Verificar disponibilidade da API |
-| GET | `/` | Informações gerais sobre a API |
-
-### Autenticação nas rotas protegidas
-
-Inclua o token JWT no cabeçalho de todas as requisições a rotas autenticadas:
-
-```
+```txt
 Authorization: Bearer <token>
 ```
 
----
-
 ## Segurança
 
-- **Rate limiting no login:** máximo de 5 tentativas a cada 15 minutos por IP, prevenindo ataques de força bruta
-- **Hash de senhas:** bcrypt com fator de custo adequado; as senhas nunca são armazenadas em texto puro
-- **Tokens JWT:** expiração de 7 dias; a rotação do `JWT_SECRET` invalida todos os tokens ativos imediatamente
-- **Validação de entrada:** todos os payloads da API são validados com Zod antes de qualquer processamento
-- **CORS configurável:** origins autorizadas definidas por variável de ambiente, bloqueando requisições de origens não listadas
-- **Tratamento seguro de erros:** stack traces suprimidos em produção para evitar vazamento de informações internas
+- Senhas criptografadas com bcrypt.
+- Autenticação via JWT.
+- Rate limiting em rotas sensíveis.
+- CORS configurável por ambiente.
+- Validação de entradas com schemas.
+- Recuperação de senha com token de uso único.
 
-### Perfis de rate limiting disponíveis
+## Observações de Desenvolvimento
 
-| Perfil | Limite | Janela |
-|---|---|---|
-| `loginLimiter` | 5 requisições | 15 minutos |
-| `generalLimiter` | 100 requisições | 15 minutos |
-| `strictLimiter` | 1000 requisições | 1 hora |
-
----
-
-## Middlewares
-
-### Auth Middleware
-
-Valida o token JWT e injeta os dados do usuário autenticado na requisição. Deve ser aplicado em todas as rotas que exigem autenticação.
-
-```javascript
-import { authMiddleware } from './src/middlewares/auth.middleware.js'
-
-router.get('/rota-protegida', authMiddleware, controller)
-```
-
----
-
-## Estrutura do Projeto
-
-```
-ProjectLibrary/
-├── client/                     # Aplicação frontend (React + Vite)
-│   ├── src/
-│   │   ├── components/         # Componentes reutilizáveis de UI
-│   │   ├── contexts/           # Gerenciamento de estado global (Context API)
-│   │   ├── hooks/              # Custom hooks para lógica compartilhada
-│   │   ├── pages/              # Páginas da aplicação
-│   │   ├── services/           # Camada de comunicação com a API
-│   │   └── styles/             # Estilos globais
-│   └── package.json
-│
-├── server/                     # Aplicação backend (Node.js + Express)
-│   ├── src/
-│   │   ├── config/             # Configurações globais (banco, cors, etc.)
-│   │   ├── controllers/        # Controladores das rotas
-│   │   ├── middlewares/        # Middlewares de autenticação, erros e logging
-│   │   ├── routes/             # Definição e agrupamento de rotas
-│   │   ├── schemas/            # Schemas de validação Zod
-│   │   ├── service/            # Lógica de negócio e acesso a dados
-│   │   └── utils/              # Utilitários e helpers
-│   ├── prisma/                 # Schema do banco e histórico de migrations
-│   ├── index.js                # Ponto de entrada da aplicação
-│   └── package.json
-│
-├── docker-compose.yml          # Orquestração de todos os serviços
-└── .gitignore
-```
-
----
-
-## Logging
-
-Os logs são persistidos no diretório `server/logs/`:
-
-| Arquivo | Conteúdo |
-|---|---|
-| `error.log` | Apenas registros de nível `error` e `fatal` |
-| `combined.log` | Todos os níveis: `debug`, `info`, `warn` e `error` |
-
-Em produção, considere configurar um transporte adicional para envio de logs a serviços externos como Datadog, Logtail ou CloudWatch para monitoramento centralizado.
-
----
-
-## Variáveis de Ambiente
-
-### Server
-
-| Variável | Descrição | Obrigatório | Padrão |
-|---|---|---|---|
-| `DATABASE_URL` | String de conexão PostgreSQL | Sim | — |
-| `JWT_SECRET` | Chave secreta para assinatura dos tokens | Sim | — |
-| `PORT` | Porta em que o servidor irá escutar | Não | `3333` |
-| `NODE_ENV` | Ambiente de execução (`development` / `production`) | Não | `development` |
-| `CORS_ORIGIN` | Origins autorizadas para requisições cross-origin | Não | `http://localhost:5173` |
-
-### Client
-
-| Variável | Descrição | Obrigatório | Padrão |
-|---|---|---|---|
-| `VITE_API_URL` | URL base da API consumida pelo frontend | Sim | `http://localhost:3333` |
-| `VITE_APP_NAME` | Nome exibido na interface da aplicação | Não | `Biblioteca Academica` |
-
----
+- O front-end consome a URL definida em `VITE_API_URL`.
+- O back-end libera origins definidas em `CORS_ORIGIN`.
+- As capas do catálogo são buscadas por título/autor em serviços externos e armazenadas em cache local do navegador.
+- Logs do back-end ficam em `server/logs/`.
+- As migrations ficam em `server/prisma/migrations/`.
 
 ## Solução de Problemas
 
-### Erro: "Cannot find module '@prisma/client'"
+### Porta 5173 em uso
 
-O cliente Prisma precisa ser gerado após a instalação das dependências:
+Finalize o processo Vite antigo ou rode em outra porta:
+
+```bash
+cd client
+npm run dev -- --port 5174
+```
+
+### Porta 3333 em uso
+
+Altere `PORT` em `server/.env`.
+
+### Prisma Client ausente
 
 ```bash
 cd server
-npx prisma generate
+npm run prisma:generate
 ```
 
-### Erro de conexão com o banco de dados
+### Erro de conexão com PostgreSQL
 
-Verifique se o PostgreSQL está em execução:
+Verifique se o banco está rodando e se `DATABASE_URL` está correta.
 
-```bash
-# Subir apenas o container do banco via Docker
-docker-compose up postgres
+## Status
 
-# Ou criar o banco manualmente via psql
-psql -U postgres -c "CREATE DATABASE project_library;"
-```
-
-Certifique-se de que a `DATABASE_URL` no `.env` aponta para o host, porta e credenciais corretos.
-
-### Porta já em uso
-
-Altere a variável `PORT` no `server/.env` ou o mapeamento de portas no `docker-compose.yml` para um valor disponível no sistema.
-
----
-
-## Status do Projeto
-
-O sistema encontra-se em fase final de desenvolvimento. As funcionalidades de autenticação, catálogo de livros, reservas e painel administrativo estão implementadas. Ajustes de interface, testes de integração e refinamentos de usabilidade estão em andamento.
-
-Contribuições, relatos de bugs e sugestões podem ser enviados via Issues no repositório.
-
----
-
-## Licença
-
-Este projeto é distribuído sob a licença MIT. Consulte o arquivo `LICENSE` para mais detalhes.
-
----
+Projeto em desenvolvimento ativo. As principais áreas do sistema já estão implementadas, com refinamentos de interface, organização e estabilidade em andamento.
 
 ## Autor
 
 Desenvolvido por PhoenixDev.
-
-Última atualização: Abril de 2026.
