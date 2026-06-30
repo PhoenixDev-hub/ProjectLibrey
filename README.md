@@ -1,4 +1,4 @@
-# ProjectLibrey
+# Sistema da Biblioteca
 
 Sistema web para gerenciamento de biblioteca escolar/acadêmica, com catálogo digital, reservas, empréstimos, leitores, notificações, dúvidas e configurações administrativas.
 
