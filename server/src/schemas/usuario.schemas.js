@@ -12,12 +12,11 @@ const dominiosPublicos = [
 
 const isInstitucional = (dominio) => {
   return (
-    dominio === "admin.admin" ||
     (typeof dominio === "string" && dominio.endsWith(".ce.gov.br") && dominio !== "aluno.ce.gov.br")
   );
 };
 
-export const createUsuarioSchema = z
+const baseUsuarioSchema = z
   .object({
     nome: z.string().min(1, "Nome obrigatório"),
     sobrenome: z.string().min(1, "Sobrenome obrigatório"),
@@ -41,11 +40,7 @@ export const createUsuarioSchema = z
     tipoUsuario: z
       .string()
       .transform((v) => v.toUpperCase().trim())
-      .refine(
-        (v) =>
-          ["ALUNO", "PROFESSOR", "BIBLIOTECARIA", "ADMINISTRADOR"].includes(v),
-        "Tipo de usuário inválido"
-      ),
+      .default("ALUNO"),
 
     anoInicioEnsinoMedio: z
     .coerce
@@ -55,8 +50,10 @@ export const createUsuarioSchema = z
     .max(new Date().getFullYear() + 1, "Ano de início do ensino médio inválido"),
 
     telefone: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
+  });
+
+const withUsuarioRules = (schema) =>
+  schema.superRefine((data, ctx) => {
     const dominioEmail = data.email.split("@")[1]?.toLowerCase() || "";
 
     if (data.tipoUsuario === "ALUNO") {
@@ -86,3 +83,31 @@ export const createUsuarioSchema = z
       }
     }
   });
+
+export const createUsuarioSchema = withUsuarioRules(
+  baseUsuarioSchema.extend({
+    tipoUsuario: z
+      .string()
+      .transform((v) => v.toUpperCase().trim())
+      .default("ALUNO")
+      .refine(
+        (v) =>
+          ["ALUNO", "PROFESSOR"].includes(v),
+        "Tipo de usuário inválido"
+      ),
+  })
+);
+
+export const createUsuarioAdminSchema = withUsuarioRules(
+  baseUsuarioSchema.extend({
+    tipoUsuario: z
+      .string()
+      .transform((v) => v.toUpperCase().trim())
+      .default("ALUNO")
+      .refine(
+        (v) =>
+          ["ALUNO", "PROFESSOR", "BIBLIOTECARIA", "ADMINISTRADOR"].includes(v),
+        "Tipo de usuário inválido"
+      ),
+  })
+);

@@ -1,9 +1,10 @@
-import { createContext, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { loginRequest, registerRequest } from "../services/auth.service.js";
+import { AuthContext } from "./authContext";
 
-export const AuthContext = createContext({});
+export { AuthContext };
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -29,7 +30,7 @@ export function AuthProvider({ children }) {
           ...response.data,
           authenticated: true,
         });
-      } catch (error) {
+      } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         delete api.defaults.headers.Authorization;
@@ -41,19 +42,6 @@ export function AuthProvider({ children }) {
 
     loadUser();
   }, []);
-
-  useEffect(() => {
-    const handleUnauthorized = () => {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      delete api.defaults.headers.Authorization;
-      setUser(null);
-      navigate("/", { replace: true });
-    };
-
-    window.addEventListener("unauthorized", handleUnauthorized);
-    return () => window.removeEventListener("unauthorized", handleUnauthorized);
-  }, [navigate]);
 
   async function login({ email, password }) {
     const data = await loginRequest({ email, password });
@@ -85,7 +73,7 @@ export function AuthProvider({ children }) {
     return data;
   }
 
-  async function logout() {
+  const logout = useCallback(async () => {
     const refreshToken = localStorage.getItem("refreshToken");
 
     try {
@@ -100,7 +88,17 @@ export function AuthProvider({ children }) {
       setUser(null);
       delete api.defaults.headers.Authorization;
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = async () => {
+      await logout();
+      navigate("/", { replace: true });
+    };
+
+    window.addEventListener("unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("unauthorized", handleUnauthorized);
+  }, [logout, navigate]);
 
   return (
     <AuthContext.Provider

@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 const DashboardContext = createContext({});
@@ -6,15 +7,15 @@ const DashboardContext = createContext({});
 const getCDDAreaName = (areaCode) => {
   if (!areaCode) return 'Geral';
   const areaValue = String(areaCode);
-  
+
   const match = areaValue.match(/(?:CDD|CDU)-?(\d+)/i);
   if (!match) {
     if (areaValue.trim().length > 0) return areaValue.trim();
     return 'Geral';
   }
-  
+
   const codeNum = parseInt(match[1], 10);
-  
+
   if (codeNum >= 0 && codeNum < 100) return 'Generalidades';
   if (codeNum >= 100 && codeNum < 200) return 'Filosofia e Psicologia';
   if (codeNum >= 200 && codeNum < 300) return 'Religião';
@@ -25,7 +26,7 @@ const getCDDAreaName = (areaCode) => {
   if (codeNum >= 700 && codeNum < 800) return 'Artes e Esportes';
   if (codeNum >= 800 && codeNum < 900) return 'Literatura';
   if (codeNum >= 900 && codeNum < 1000) return 'Geografia e História';
-  
+
   return 'Geral';
 };
 
@@ -89,7 +90,7 @@ export const DashboardProvider = ({ children }) => {
   const handleAddEvent = async (e) => {
     e.preventDefault();
     if (!eventForm.date || !eventForm.title) return;
-    
+
     try {
       await api.post('/eventos', eventForm);
       setShowEventModal(false);
@@ -106,19 +107,19 @@ export const DashboardProvider = ({ children }) => {
     return () => clearInterval(timer);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setErrorMsg('');
-      
+
       const booksRes = await api.get('/livros');
       setBooks(booksRes.data);
-      
+
       try {
         const resRes = await api.get('/reservas');
         setReservations(resRes.data);
-      } catch (err) {
-        console.log("Error loading reservations:", err);
+      } catch {
+        console.log('Error loading reservations');
       }
 
       const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
@@ -126,51 +127,51 @@ export const DashboardProvider = ({ children }) => {
         try {
           const usersRes = await api.get('/usuarios');
           setUsers(usersRes.data);
-        } catch (err) {
-          console.log("Error loading users:", err);
+        } catch {
+          console.log('Error loading users');
         }
       }
 
       try {
         const notifRes = await api.get('/notificacoes');
         setNotifications(notifRes.data.notificacoes || []);
-      } catch (err) {
-        console.log("Error loading notifications:", err);
+      } catch {
+        console.log('Error loading notifications');
       }
 
       try {
         const duvidasRes = await api.get('/duvidas');
         setDuvidas(duvidasRes.data || []);
-      } catch (err) {
-        console.log("Error loading duvidas:", err);
+      } catch {
+        console.log('Error loading duvidas');
       }
 
       try {
         const configRes = await api.get('/configuracoes');
         setLibraryConfig(configRes.data || null);
-      } catch (err) {
-        console.log("Error loading library config:", err);
+      } catch {
+        console.log('Error loading library config');
       }
 
       try {
         const eventsRes = await api.get('/eventos');
         setCalendarEvents(eventsRes.data || []);
-      } catch (err) {
-        console.log("Error loading calendar events:", err);
+      } catch {
+        console.log('Error loading calendar events');
       }
-    } catch (err) {
+    } catch (error) {
       setErrorMsg('Erro ao obter dados do servidor.');
-      console.error(err);
+      console.error(error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.tipoUsuario]);
 
   useEffect(() => {
     if (user) {
       fetchData();
     }
-  }, [user]);
+  }, [user, fetchData]);
 
   useEffect(() => {
     if (successMsg || errorMsg) {
@@ -198,7 +199,7 @@ export const DashboardProvider = ({ children }) => {
       await api.patch(`/reservas/${reservaId}/status`, { acao });
       setSuccessMsg(`Reserva ${acao === 'APROVAR' ? 'aprovada' : 'rejeitada'} com sucesso!`);
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao atualizar status da reserva.');
     }
   };
@@ -208,7 +209,7 @@ export const DashboardProvider = ({ children }) => {
       await api.patch(`/reservas/${reservaId}/retirar`);
       setSuccessMsg('Retirada registrada com sucesso!');
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao registrar retirada.');
     }
   };
@@ -218,7 +219,7 @@ export const DashboardProvider = ({ children }) => {
       await api.patch(`/reservas/${reservaId}/devolver`);
       setSuccessMsg('Devolução registrada com sucesso!');
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao registrar devolução.');
     }
   };
@@ -227,8 +228,8 @@ export const DashboardProvider = ({ children }) => {
     try {
       await api.patch(`/notificacoes/${id}/lida`);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, lida: true } : n));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.error('Error marking notification as read');
     }
   };
 
@@ -236,8 +237,8 @@ export const DashboardProvider = ({ children }) => {
     try {
       await api.patch('/notificacoes/marcar-todas-lidas');
       setNotifications(prev => prev.map(n => ({ ...n, lida: true })));
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.error('Error marking all notifications as read');
     }
   };
 
@@ -259,8 +260,8 @@ export const DashboardProvider = ({ children }) => {
       setShowBookModal(false);
       setEditingBook(null);
       fetchData();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Erro ao salvar livro.');
+    } catch (error) {
+      setErrorMsg(error.response?.data?.error || 'Erro ao salvar livro.');
     }
   };
 
@@ -270,7 +271,7 @@ export const DashboardProvider = ({ children }) => {
       await api.delete(`/livros/${livroId}`);
       setSuccessMsg('Livro excluído com sucesso!');
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao excluir livro.');
     }
   };
@@ -281,7 +282,7 @@ export const DashboardProvider = ({ children }) => {
       await api.post('/exemplares', { livroId, codigo });
       setSuccessMsg('Exemplar adicionado com sucesso!');
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao adicionar exemplar.');
     }
   };
@@ -292,7 +293,7 @@ export const DashboardProvider = ({ children }) => {
       await api.delete(`/exemplares/${exemplarId}`);
       setSuccessMsg('Exemplar removido com sucesso!');
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao remover exemplar.');
     }
   };
@@ -322,8 +323,8 @@ export const DashboardProvider = ({ children }) => {
       setShowUserModal(false);
       setEditingUser(null);
       fetchData();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Erro ao salvar leitor.');
+    } catch (error) {
+      setErrorMsg(error.response?.data?.error || 'Erro ao salvar leitor.');
     }
   };
 
@@ -333,7 +334,7 @@ export const DashboardProvider = ({ children }) => {
       await api.put(`/usuarios/${userId}`, { status: newStatus });
       setSuccessMsg(`Status do leitor alterado com sucesso!`);
       fetchData();
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao alterar status do leitor.');
     }
   };
@@ -362,7 +363,7 @@ export const DashboardProvider = ({ children }) => {
       });
 
       setSuccessMsg('Perfil atualizado com sucesso!');
-    } catch (err) {
+    } catch {
       setErrorMsg('Erro ao atualizar perfil.');
     }
   };
@@ -372,9 +373,9 @@ export const DashboardProvider = ({ children }) => {
       await api.post('/duvidas', { duvida: duvidaText });
       setSuccessMsg('Sua dúvida foi enviada com sucesso para a bibliotecária!');
       await fetchData();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Erro ao enviar dúvida.');
-      throw err;
+    } catch (error) {
+      setErrorMsg(error.response?.data?.error || 'Erro ao enviar dúvida.');
+      throw error;
     }
   };
 
@@ -383,9 +384,9 @@ export const DashboardProvider = ({ children }) => {
       await api.patch(`/duvidas/${duvidaId}/resolver`, { resposta });
       setSuccessMsg('Dúvida respondida/resolvida com sucesso!');
       await fetchData();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Erro ao resolver dúvida.');
-      throw err;
+    } catch (error) {
+      setErrorMsg(error.response?.data?.error || 'Erro ao resolver dúvida.');
+      throw error;
     }
   };
 
@@ -395,9 +396,9 @@ export const DashboardProvider = ({ children }) => {
       setLibraryConfig(res.data);
       setSuccessMsg('Configurações da biblioteca atualizadas com sucesso!');
       await fetchData();
-    } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Erro ao atualizar configurações da biblioteca.');
-      throw err;
+    } catch (error) {
+      setErrorMsg(error.response?.data?.error || 'Erro ao atualizar configurações da biblioteca.');
+      throw error;
     }
   };
 

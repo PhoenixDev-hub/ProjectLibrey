@@ -30,6 +30,12 @@ async function createRefreshToken(usuarioId) {
   return token
 }
 
+function createUnauthorizedRefreshTokenError() {
+  const err = new Error("Refresh token inválido ou expirado")
+  err.status = 401
+  return err
+}
+
 export async function loginService(email, senha) {
   const usuario = await prisma.usuario.findUnique({
     where: { email },
@@ -66,7 +72,7 @@ export async function loginService(email, senha) {
 
 export async function refreshTokenService(refreshToken) {
   if (!refreshToken) {
-    throw new Error("Refresh token não fornecido")
+    throw createUnauthorizedRefreshTokenError()
   }
 
   const storedToken = await prisma.refreshToken.findUnique({
@@ -74,12 +80,12 @@ export async function refreshTokenService(refreshToken) {
   })
 
   if (!storedToken) {
-    throw new Error("Refresh token inválido")
+    throw createUnauthorizedRefreshTokenError()
   }
 
   if (storedToken.expiresAt < new Date()) {
     await prisma.refreshToken.delete({ where: { id: storedToken.id } })
-    throw new Error("Refresh token expirado")
+    throw createUnauthorizedRefreshTokenError()
   }
 
   const usuario = await prisma.usuario.findUnique({
@@ -87,7 +93,7 @@ export async function refreshTokenService(refreshToken) {
   })
 
   if (!usuario || usuario.status !== "ATIVO") {
-    throw new Error("Usuário inválido")
+    throw createUnauthorizedRefreshTokenError()
   }
 
   const accessToken = createAccessToken(usuario)

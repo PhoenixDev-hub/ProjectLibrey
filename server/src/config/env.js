@@ -1,4 +1,9 @@
 function validateEnv() {
+  if (!process.env.JWT_SECRET) {
+    console.error('\x1b[31m✖ ERRO FATAL: JWT_SECRET não definido. Defina a variável no arquivo .env antes de iniciar o servidor.\x1b[0m')
+    process.exit(1)
+  }
+
   const env = process.env.NODE_ENV || 'development';
 
   if (env === 'production') {
@@ -9,18 +14,8 @@ function validateEnv() {
       throw new Error(`Variáveis de ambiente faltando para produção: ${missing.join(', ')}\nVerifique seu arquivo .env`);
     }
   } else {
-    const warnings = [];
-
-    if (!process.env.JWT_SECRET) {
-      warnings.push('JWT_SECRET');
-    }
-
     if (!process.env.DATABASE_URL) {
-      warnings.push('DATABASE_URL');
-    }
-
-    if (warnings.length) {
-      console.warn('\x1b[33m⚠ AVISO: JWT_SECRET não definido. Usando valor padrão inseguro. NÃO use em produção!\x1b[0m');
+      console.warn('\x1b[33m⚠ AVISO: DATABASE_URL não definido. O projeto pode não conectar ao banco.\x1b[0m');
     }
   }
 }
@@ -30,7 +25,7 @@ export const config = {
     url: process.env.DATABASE_URL || null
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'dev-secret',
+    secret: process.env.JWT_SECRET,
     expiresIn: '7d'
   },
   server: {

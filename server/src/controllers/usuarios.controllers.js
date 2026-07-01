@@ -1,9 +1,13 @@
-import { createUsuarioSchema } from "../schemas/usuario.schemas.js";
+import { createUsuarioAdminSchema, createUsuarioSchema } from "../schemas/usuario.schemas.js";
 import { criarUsuario, listarUsuarios, atualizarUsuario } from "../service/usuario.service.js";
 
 export async function createUsuarioController(req, res) {
   try {
-    const data = createUsuarioSchema.parse(req.body);
+    const schema = req.baseUrl === "/usuarios" ? createUsuarioAdminSchema : createUsuarioSchema;
+    const data = schema.parse({
+      tipoUsuario: "ALUNO",
+      ...req.body,
+    });
     const result = await criarUsuario(data);
 
     return res.status(201).json(result);
@@ -48,4 +52,3 @@ export async function atualizarUsuarioController(req, res, next) {
     next(error);
   }
 }
-

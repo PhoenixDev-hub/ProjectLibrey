@@ -1,5 +1,5 @@
 import { AlertCircle, ArrowLeft, Bookmark, BookOpen, ChevronLeft, ChevronRight, Heart, Star, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDashboard } from '../../../contexts/DashboardContext';
 import { useBookCover } from '../../../hooks/useBookCover';
 
@@ -72,6 +72,124 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   );
 };
 
+const BookDetailsModal = ({ selectedBookDetails, onClose, isDark, ehAluno, favorites, toggleFavorite, handleReservarLivro, getCDDAreaName }) => {
+  if (!selectedBookDetails) return null;
+  const b = selectedBookDetails;
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative w-full max-w-2xl rounded-[32px] border p-6 shadow-2xl z-[130] transition-all duration-300
+        ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-gray-200 text-slate-900'}
+      `}>
+        <div className="flex items-start justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <BookOpen className="text-sky-500" size={18} />
+            <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Detalhes do Livro
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className={`p-1.5 rounded-full transition ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-150 text-slate-500'}`}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex flex-col items-center gap-4 shrink-0 mx-auto md:mx-0">
+            <BookCover
+              title={b.titulo}
+              author={b.autor}
+              imageUrl={b.imageUrl}
+              size="lg"
+            />
+            {ehAluno && (
+              <button
+                onClick={() => toggleFavorite(b.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition w-full justify-center
+                  ${favorites.has(b.id)
+                    ? 'border-red-500/30 bg-red-500/10 text-red-500'
+                    : isDark ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-gray-200 hover:bg-gray-50 text-slate-650'}`}
+              >
+                <Heart size={14} className={favorites.has(b.id) ? 'fill-red-500' : ''} />
+                <span>{favorites.has(b.id) ? 'Favoritado' : 'Favoritar'}</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex-1 flex flex-col justify-between">
+            <div className="space-y-4">
+              <div>
+                <h3 className={`text-xl font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                  {b.titulo}
+                </h3>
+                <p className={`text-xs ${isDark ? 'text-slate-455' : 'text-slate-500'} font-semibold mt-0.5`}>
+                  por <span className="font-bold">{b.autor}</span>
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+                  <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Editora</p>
+                  <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.editora || 'Desconhecida'}</p>
+                </div>
+                <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+                  <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Ano Publicação</p>
+                  <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.anoPublicacao || 'N/A'}</p>
+                </div>
+                <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+                  <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">ISBN</p>
+                  <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.isbn || 'N/A'}</p>
+                </div>
+                <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
+                  <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Área / Categoria</p>
+                  <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{getCDDAreaName(b.area)}</p>
+                </div>
+              </div>
+
+              {b.sinopse && (
+                <div>
+                  <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider mb-1">Sinopse</p>
+                  <p className={`text-xs leading-relaxed max-h-36 overflow-y-auto pr-1 ${isDark ? 'text-slate-300 font-medium' : 'text-slate-600 font-medium'}`}>
+                    {b.sinopse}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2.5 pt-4 border-t border-slate-750/20 mt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className={`flex-1 py-2.5 rounded-xl font-bold transition text-xs border
+                  ${isDark ? 'border-white/10 text-slate-300 hover:bg-slate-800' : 'border-gray-300 text-slate-600 hover:bg-gray-100'}`}
+              >
+                Fechar
+              </button>
+              {ehAluno && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleReservarLivro(b.id);
+                    onClose();
+                  }}
+                  className={`flex-[2] py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5 shadow-sm text-slate-950
+                    ${isDark ? 'bg-sky-500 hover:bg-sky-400' : 'bg-emerald-500 hover:bg-emerald-450'}`}
+                >
+                  <Bookmark size={14} />
+                  Reservar Livro
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Catalogo = () => {
   const {
     theme,
@@ -96,26 +214,20 @@ const Catalogo = () => {
 
   const [activeView, setActiveView] = useState('todos');
   const [selectedBookDetails, setSelectedBookDetails] = useState(null);
-  const [favorites, setFavorites] = useState(new Set());
+  const [favorites, setFavorites] = useState(() => {
+    if (!user?.id) return new Set();
+
+    try {
+      const saved = localStorage.getItem(`favorites_${user.id}`);
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
   const [visibleCount, setVisibleCount] = useState(12);
 
   const [lancPage, setLancPage] = useState(0);
   const [recPage, setRecPage] = useState(0);
-
-  useEffect(() => {
-    if (user?.id) {
-      try {
-        const saved = localStorage.getItem(`favorites_${user.id}`);
-        if (saved) {
-          setFavorites(new Set(JSON.parse(saved)));
-        } else {
-          setFavorites(new Set());
-        }
-      } catch (err) {
-        console.error("Erro ao carregar favoritos:", err);
-      }
-    }
-  }, [user]);
 
   const toggleFavorite = (bookId) => {
     setFavorites(prev => {
@@ -132,14 +244,15 @@ const Catalogo = () => {
   const handleVoltar = () => {
     setSelectedCategory('Todos');
     setSearchQuery('');
+    resetPagination();
     setActiveView('todos');
   };
 
-  useEffect(() => {
+  const resetPagination = () => {
     setVisibleCount(12);
     setLancPage(0);
     setRecPage(0);
-  }, [searchQuery, selectedCategory]);
+  };
 
   const hasRealBooks = books && books.length > 0;
 
@@ -297,123 +410,6 @@ const Catalogo = () => {
     return maisLidos.slice(0, 7);
   })();
 
-  const BookDetailsModal = () => {
-    if (!selectedBookDetails) return null;
-    const b = selectedBookDetails;
-    return (
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setSelectedBookDetails(null)} />
-        <div className={`relative w-full max-w-2xl rounded-[32px] border p-6 shadow-2xl z-[130] transition-all duration-300
-          ${isDark ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-gray-200 text-slate-900'}
-        `}>
-          <div className="flex items-start justify-between mb-5">
-            <div className="flex items-center gap-2">
-              <BookOpen className="text-sky-500" size={18} />
-              <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                Detalhes do Livro
-              </span>
-            </div>
-            <button
-              onClick={() => setSelectedBookDetails(null)}
-              className={`p-1.5 rounded-full transition ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-150 text-slate-500'}`}
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-6">
-            <div className="flex flex-col items-center gap-4 shrink-0 mx-auto md:mx-0">
-              <BookCover
-                title={b.titulo}
-                author={b.autor}
-                imageUrl={b.imageUrl}
-                size="lg"
-              />
-              {ehAluno && (
-                <button
-                  onClick={() => toggleFavorite(b.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition w-full justify-center
-                    ${favorites.has(b.id)
-                      ? 'border-red-500/30 bg-red-500/10 text-red-500'
-                      : isDark ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-gray-200 hover:bg-gray-50 text-slate-650'}`}
-                >
-                  <Heart size={14} className={favorites.has(b.id) ? 'fill-red-500' : ''} />
-                  <span>{favorites.has(b.id) ? 'Favoritado' : 'Favoritar'}</span>
-                </button>
-              )}
-            </div>
-
-            <div className="flex-1 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div>
-                  <h3 className={`text-xl font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {b.titulo}
-                  </h3>
-                  <p className={`text-xs ${isDark ? 'text-slate-455' : 'text-slate-500'} font-semibold mt-0.5`}>
-                    por <span className="font-bold">{b.autor}</span>
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
-                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Editora</p>
-                    <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.editora || 'Desconhecida'}</p>
-                  </div>
-                  <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
-                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Ano Publicação</p>
-                    <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.anoPublicacao || 'N/A'}</p>
-                  </div>
-                  <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
-                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">ISBN</p>
-                    <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{b.isbn || 'N/A'}</p>
-                  </div>
-                  <div className={`p-2.5 rounded-2xl border ${isDark ? 'bg-slate-950/40 border-white/5' : 'bg-gray-50 border-gray-150'}`}>
-                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider">Área / Categoria</p>
-                    <p className={`font-semibold mt-0.5 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{getCDDAreaName(b.area)}</p>
-                  </div>
-                </div>
-
-                {b.sinopse && (
-                  <div>
-                    <p className="text-[9px] text-slate-450 font-bold uppercase tracking-wider mb-1">Sinopse</p>
-                    <p className={`text-xs leading-relaxed max-h-36 overflow-y-auto pr-1 ${isDark ? 'text-slate-300 font-medium' : 'text-slate-600 font-medium'}`}>
-                      {b.sinopse}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-2.5 pt-4 border-t border-slate-750/20 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedBookDetails(null)}
-                  className={`flex-1 py-2.5 rounded-xl font-bold transition text-xs border
-                    ${isDark ? 'border-white/10 text-slate-300 hover:bg-slate-800' : 'border-gray-300 text-slate-600 hover:bg-gray-100'}`}
-                >
-                  Fechar
-                </button>
-                {ehAluno && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleReservarLivro(b.id);
-                      setSelectedBookDetails(null);
-                    }}
-                    className={`flex-[2] py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5 shadow-sm text-slate-950
-                      ${isDark ? 'bg-sky-500 hover:bg-sky-400' : 'bg-emerald-500 hover:bg-emerald-450'}`}
-                  >
-                    <Bookmark size={14} />
-                    Reservar Livro
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex flex-col gap-6">
@@ -531,7 +527,6 @@ const Catalogo = () => {
                 className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-1
                   ${activeView === 'favoritos' ? 'bg-white text-slate-900 shadow-sm' : 'text-white hover:bg-white/10'}`}
               >
-                <Heart size={12} className={favorites.size > 0 ? 'fill-red-500 text-red-500' : ''} />
                 Meus Favoritos
               </button>
             </div>
@@ -976,7 +971,16 @@ const Catalogo = () => {
         </>
       )}
 
-      <BookDetailsModal />
+      <BookDetailsModal
+        selectedBookDetails={selectedBookDetails}
+        onClose={() => setSelectedBookDetails(null)}
+        isDark={isDark}
+        ehAluno={ehAluno}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        handleReservarLivro={handleReservarLivro}
+        getCDDAreaName={getCDDAreaName}
+      />
     </div>
   );
 };

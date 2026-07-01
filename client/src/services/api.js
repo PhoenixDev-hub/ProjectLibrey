@@ -21,6 +21,17 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
+const clearAuthState = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  delete api.defaults.headers.Authorization;
+};
+
+const handleUnauthorized = () => {
+  clearAuthState();
+  window.dispatchEvent(new Event("unauthorized"));
+};
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
@@ -40,10 +51,7 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!refreshToken) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        delete api.defaults.headers.Authorization;
-        window.dispatchEvent(new Event("unauthorized"));
+        handleUnauthorized();
         return Promise.reject(error);
       }
 
@@ -88,10 +96,12 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        delete api.defaults.headers.Authorization;
-        window.dispatchEvent(new Event("unauthorized"));
+        const status = refreshError?.response?.status;
+
+        if (status === 401 || status === 403) {
+          handleUnauthorized();
+        }
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -99,10 +109,11 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401 && !originalRequest?.skipAuthRedirect) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      delete api.defaults.headers.Authorization;
-      window.dispatchEvent(new Event("unauthorized"));
+      handleUnauthorized();
+    }
+
+    if (!error.response) {
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

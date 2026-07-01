@@ -5,9 +5,16 @@ import { soBibliotecaria } from "../middlewares/role.middleware.js";
 
 const router = Router()
 
-router.post("/", createUsuarioController)
+const protegerCriacaoAdministrativa = (req, res, next) => {
+  if (req.baseUrl !== "/usuarios") {
+    return next()
+  }
+
+  return soBibliotecaria(req, res, next)
+}
+
+router.post("/", protegerCriacaoAdministrativa, createUsuarioController)
 router.get("/", autenticar, soBibliotecaria, listarUsuariosController)
 router.put("/:id", autenticar, soBibliotecaria, atualizarUsuarioController)
 
 export default router
-
