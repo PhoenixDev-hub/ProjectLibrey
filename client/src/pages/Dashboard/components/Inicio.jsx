@@ -1,6 +1,6 @@
+import { AlertCircle, Bookmark, BookOpen, Check, Users } from "lucide-react";
 import Calendar from "../../../components/layout/calendar";
 import { useDashboard } from "../../../contexts/DashboardContext";
-import { BookOpen, AlertCircle, Bookmark, Users } from "lucide-react";
 
 const Inicio = () => {
   const { theme, user, reservations, users, setShowReservaModal } = useDashboard();
@@ -9,76 +9,114 @@ const Inicio = () => {
   const safeReservations = Array.isArray(reservations) ? reservations : [];
   const safeUsers = Array.isArray(users) ? users : [];
 
+  const isBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
+
   const acervoStats = (() => {
     const hoje = new Date();
+    // If user is a librarian/admin, keep existing dashboard behavior
+    if (isBibliotecaria) {
+      const totalEmprestimosReal = safeReservations.filter(r => r.status === 'RETIRADO').length;
+      const totalExpiradosReal = safeReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) < hoje).length;
+      const totalReservasReal = safeReservations.filter(r => r.status === 'PENDENTE').length;
+      const totalAprovadosReal = safeReservations.filter(r => r.status === 'APROVADO').length;
 
-    const totalEmprestimosReal = safeReservations.filter(r => r.status === 'RETIRADO').length;
-    const totalExpiradosReal = safeReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) < hoje).length;
-    const totalReservasReal = safeReservations.filter(r => r.status === 'PENDENTE').length;
-    const totalAprovadosReal = safeReservations.filter(r => r.status === 'APROVADO').length;
+      const hasRealData = safeReservations.length > 0;
 
-    const hasRealData = safeReservations.length > 0;
+      const fallbackStats = [
+        { status: 'No Prazo', count: 89, percentage: 63, tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
+        { status: 'Atrasados', count: 18, percentage: 13, tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
+        { status: 'Aguardando Retirada', count: 25, percentage: 17, tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
+        { status: 'Pendentes', count: 10, percentage: 7, tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
+      ];
 
-    const fallbackStats = [
-      { status: 'No Prazo', count: 89, percentage: 63, tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
-      { status: 'Atrasados', count: 18, percentage: 13, tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
-      { status: 'Aguardando Retirada', count: 25, percentage: 17, tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
-      { status: 'Pendentes', count: 10, percentage: 7, tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
+      if (!hasRealData) {
+        return {
+          total: 142,
+          data: fallbackStats,
+          displayEmprestimos: 142,
+          displayExpirados: 18,
+          displayReservas: 35,
+          displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
+        };
+      }
+
+      const noPrazoCount = safeReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) >= hoje).length;
+      const atrasadosCount = totalExpiradosReal;
+      const aguardandoCount = totalAprovadosReal;
+      const pendentesCount = totalReservasReal;
+
+      const total = noPrazoCount + atrasadosCount + aguardandoCount + pendentesCount;
+
+      if (total === 0) {
+        return {
+          total: 0,
+          data: [
+            { status: 'No Prazo', count: 0, percentage: 0, tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
+            { status: 'Atrasados', count: 0, percentage: 0, tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
+            { status: 'Aguardando Retirada', count: 0, percentage: 0, tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
+            { status: 'Pendentes', count: 0, percentage: 0, tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
+          ],
+          displayEmprestimos: 0,
+          displayExpirados: 0,
+          displayReservas: 0,
+          displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
+        };
+      }
+
+      const data = [
+        { status: 'No Prazo', count: noPrazoCount, percentage: Math.round((noPrazoCount / total) * 100), tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
+        { status: 'Atrasados', count: atrasadosCount, percentage: Math.round((atrasadosCount / total) * 100), tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
+        { status: 'Aguardando Retirada', count: aguardandoCount, percentage: Math.round((aguardandoCount / total) * 100), tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
+        { status: 'Pendentes', count: pendentesCount, percentage: Math.round((pendentesCount / total) * 100), tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
+      ].sort((a, b) => b.count - a.count);
+
+      return {
+        total,
+        data,
+        displayEmprestimos: totalEmprestimosReal,
+        displayExpirados: totalExpiradosReal,
+        displayReservas: totalReservasReal,
+        displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
+      };
+    }
+
+    // For students show personal stats: pegou, atrasou, devolveu no prazo, pendentes
+    const studentReservations = safeReservations.filter(r => r.usuarioId === user?.id);
+    const pegouCount = studentReservations.filter(r => r.status === 'RETIRADO').length;
+    const atrasouCount = studentReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) < hoje).length;
+    const devolvidos = studentReservations.filter(r => r.status === 'DEVOLVIDO');
+    const entregouNoPrazo = devolvidos.filter(r => {
+      if (r.prazoDevol && r.devolvidoEm) return new Date(r.devolvidoEm) <= new Date(r.prazoDevol);
+      return true;
+    }).length;
+    const pendentesCount = studentReservations.filter(r => r.status === 'PENDENTE' || r.status === 'APROVADO').length;
+
+    const totalStudent = pegouCount + atrasouCount + entregouNoPrazo + pendentesCount;
+
+    const studentData = totalStudent === 0 ? [
+      { status: 'Pegou', count: 0, percentage: 0, tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
+      { status: 'Atrasados', count: 0, percentage: 0, tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
+      { status: 'Entregou no Prazo', count: 0, percentage: 0, tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
+      { status: 'Pendentes', count: 0, percentage: 0, tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' }
+    ] : [
+      { status: 'Pegou', count: pegouCount, percentage: Math.round((pegouCount / totalStudent) * 100), tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
+      { status: 'Atrasados', count: atrasouCount, percentage: Math.round((atrasouCount / totalStudent) * 100), tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
+      { status: 'Entregou no Prazo', count: entregouNoPrazo, percentage: Math.round((entregouNoPrazo / totalStudent) * 100), tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
+      { status: 'Pendentes', count: pendentesCount, percentage: Math.round((pendentesCount / totalStudent) * 100), tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' }
     ];
 
-    if (!hasRealData) {
-      return {
-        total: 142,
-        data: fallbackStats,
-        displayEmprestimos: 142,
-        displayExpirados: 18,
-        displayReservas: 35,
-        displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
-      };
-    }
-
-    const noPrazoCount = safeReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) >= hoje).length;
-    const atrasadosCount = totalExpiradosReal;
-    const aguardandoCount = totalAprovadosReal;
-    const pendentesCount = totalReservasReal;
-
-    const total = noPrazoCount + atrasadosCount + aguardandoCount + pendentesCount;
-
-    if (total === 0) {
-      return {
-        total: 0,
-        data: [
-          { status: 'No Prazo', count: 0, percentage: 0, tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
-          { status: 'Atrasados', count: 0, percentage: 0, tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
-          { status: 'Aguardando Retirada', count: 0, percentage: 0, tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
-          { status: 'Pendentes', count: 0, percentage: 0, tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
-        ],
-        displayEmprestimos: 0,
-        displayExpirados: 0,
-        displayReservas: 0,
-        displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
-      };
-    }
-
-    const data = [
-      { status: 'No Prazo', count: noPrazoCount, percentage: Math.round((noPrazoCount / total) * 100), tailwindColor: 'bg-blue-500', strokeColor: '#3b82f6' },
-      { status: 'Atrasados', count: atrasadosCount, percentage: Math.round((atrasadosCount / total) * 100), tailwindColor: 'bg-rose-500', strokeColor: '#f43f5e' },
-      { status: 'Aguardando Retirada', count: aguardandoCount, percentage: Math.round((aguardandoCount / total) * 100), tailwindColor: 'bg-emerald-500', strokeColor: '#10b981' },
-      { status: 'Pendentes', count: pendentesCount, percentage: Math.round((pendentesCount / total) * 100), tailwindColor: 'bg-amber-500', strokeColor: '#f59e0b' },
-    ].sort((a, b) => b.count - a.count);
-
     return {
-      total,
-      data,
-      displayEmprestimos: totalEmprestimosReal,
-      displayExpirados: totalExpiradosReal,
-      displayReservas: totalReservasReal,
-      displayLeitores: safeUsers.length > 0 ? safeUsers.length : 890
+      total: totalStudent,
+      data: studentData,
+      displayEmprestimos: pegouCount,
+      displayExpirados: atrasouCount,
+      displayReservas: pendentesCount,
+      displayLeitores: 1
     };
   })();
 
   const radius = 38;
-  const circumference = 2 * Math.PI * radius; 
+  const circumference = 2 * Math.PI * radius;
   const chartSegments = acervoStats.data.map((stat, idx, stats) => {
     const previousPercentage = stats
       .slice(0, idx)
@@ -117,34 +155,69 @@ const Inicio = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Empréstimos"
-            value={acervoStats.displayEmprestimos}
-            icon={BookOpen}
-            colorClass={isDark ? "text-sky-400 bg-sky-400/10" : "text-amber-600 bg-amber-600/10"}
-            isDark={isDark}
-          />
-          <StatCard
-            title="Expirados"
-            value={acervoStats.displayExpirados}
-            icon={AlertCircle}
-            colorClass="text-rose-500 bg-rose-500/10"
-            isDark={isDark}
-          />
-          <StatCard
-            title="Reservas"
-            value={acervoStats.displayReservas}
-            icon={Bookmark}
-            colorClass={isDark ? "text-emerald-400 bg-emerald-400/10" : "text-emerald-600 bg-emerald-600/10"}
-            isDark={isDark}
-          />
-          <StatCard
-            title="Leitores Ativos"
-            value={acervoStats.displayLeitores}
-            icon={Users}
-            colorClass={isDark ? "text-violet-400 bg-violet-400/10" : "text-violet-600 bg-violet-600/10"}
-            isDark={isDark}
-          />
+          {isBibliotecaria ? (
+            <>
+              <StatCard
+                title="Empréstimos"
+                value={acervoStats.displayEmprestimos}
+                icon={BookOpen}
+                colorClass={isDark ? "text-sky-400 bg-sky-400/10" : "text-amber-600 bg-amber-600/10"}
+                isDark={isDark}
+              />
+              <StatCard
+                title="Expirados"
+                value={acervoStats.displayExpirados}
+                icon={AlertCircle}
+                colorClass="text-rose-500 bg-rose-500/10"
+                isDark={isDark}
+              />
+              <StatCard
+                title="Reservas"
+                value={acervoStats.displayReservas}
+                icon={Bookmark}
+                colorClass={isDark ? "text-emerald-400 bg-emerald-400/10" : "text-emerald-600 bg-emerald-600/10"}
+                isDark={isDark}
+              />
+              <StatCard
+                title="Leitores Ativos"
+                value={acervoStats.displayLeitores}
+                icon={Users}
+                colorClass={isDark ? "text-violet-400 bg-violet-400/10" : "text-violet-600 bg-violet-600/10"}
+                isDark={isDark}
+              />
+            </>
+          ) : (
+            <>
+              <StatCard
+                title="Meus Empréstimos"
+                value={acervoStats.displayEmprestimos}
+                icon={BookOpen}
+                colorClass={isDark ? "text-sky-400 bg-sky-400/10" : "text-amber-600 bg-amber-600/10"}
+                isDark={isDark}
+              />
+              <StatCard
+                title="Meus Atrasados"
+                value={acervoStats.displayExpirados}
+                icon={AlertCircle}
+                colorClass="text-rose-500 bg-rose-500/10"
+                isDark={isDark}
+              />
+              <StatCard
+                title="Entregou no Prazo"
+                value={acervoStats.data.find(d => d.status === 'Entregou no Prazo')?.count ?? 0}
+                icon={Check}
+                colorClass={isDark ? "text-emerald-400 bg-emerald-400/10" : "text-emerald-600 bg-emerald-600/10"}
+                isDark={isDark}
+              />
+              <StatCard
+                title="Pendentes"
+                value={acervoStats.displayReservas}
+                icon={Bookmark}
+                colorClass={isDark ? "text-violet-400 bg-violet-400/10" : "text-violet-600 bg-violet-600/10"}
+                isDark={isDark}
+              />
+            </>
+          )}
         </div>
 
         <div className={`rounded-3xl border p-6 shadow-sm flex flex-col flex-1 ${isDark ? 'border-white/10 bg-slate-900/60' : 'border-gray-200 bg-white'}`}>

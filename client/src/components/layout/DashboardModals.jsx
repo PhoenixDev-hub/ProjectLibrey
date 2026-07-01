@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { AlertCircle, ArrowLeft, ArrowRight, BookOpen, Check, RefreshCw, Search, Sparkles, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDashboard } from '../../contexts/DashboardContext';
-import { X, Search, User, BookOpen, Check, Sparkles, ArrowRight, ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const BookModal = () => {
   const { theme, showBookModal, setShowBookModal, editingBook, bookForm, setBookForm, handleSaveBook } = useDashboard();
@@ -110,8 +110,8 @@ export const UserModal = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Tipo de Usuário</label>
-              <select 
-                value={userForm.tipoUsuario} 
+              <select
+                value={userForm.tipoUsuario}
                 onChange={e => {
                   const newType = e.target.value;
                   setUserForm({
@@ -119,7 +119,7 @@ export const UserModal = () => {
                     tipoUsuario: newType,
                     anoSala: newType === 'ALUNO' ? '1A' : newType === 'PROFESSOR' ? 'Sala dos Professores' : ''
                   });
-                }} 
+                }}
                 className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
               >
                 <option value="ALUNO">Aluno</option>
@@ -131,8 +131,8 @@ export const UserModal = () => {
             <div>
               <label className="block text-sm font-medium mb-1">Turma / Sala</label>
               {userForm.tipoUsuario === 'ALUNO' ? (
-                <select 
-                  value={userForm.anoSala || '1A'} 
+                <select
+                  value={userForm.anoSala || '1A'}
                   onChange={e => {
                     const val = e.target.value;
                     const gradeMatch = val.match(/\d/);
@@ -147,7 +147,7 @@ export const UserModal = () => {
                       anoSala: val,
                       anoInicioEnsinoMedio: computedYear
                     });
-                  }} 
+                  }}
                   className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
                 >
                   {['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '3A', '3B', '3C', '3D'].map(val => (
@@ -155,12 +155,12 @@ export const UserModal = () => {
                   ))}
                 </select>
               ) : (
-                <input 
-                  type="text" 
-                  value={userForm.anoSala} 
-                  onChange={e => setUserForm({...userForm, anoSala: e.target.value})} 
-                  className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`} 
-                  placeholder="Ex: Sala dos Professores" 
+                <input
+                  type="text"
+                  value={userForm.anoSala}
+                  onChange={e => setUserForm({...userForm, anoSala: e.target.value})}
+                  className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
+                  placeholder="Ex: Sala dos Professores"
                   disabled={['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(userForm.tipoUsuario)}
                 />
               )}
@@ -173,10 +173,10 @@ export const UserModal = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Ano Início E.M.</label>
-              <input 
-                type="number" 
-                value={userForm.anoInicioEnsinoMedio} 
-                onChange={e => setUserForm({...userForm, anoInicioEnsinoMedio: e.target.value})} 
+              <input
+                type="number"
+                value={userForm.anoInicioEnsinoMedio}
+                onChange={e => setUserForm({...userForm, anoInicioEnsinoMedio: e.target.value})}
                 className={`w-full rounded-2xl border px-4 py-2.5 outline-none transition text-sm ${theme === 'dark' ? 'bg-slate-950 border-white/10 focus:border-sky-400 text-white' : 'bg-white border-gray-300 focus:border-blue-500 text-slate-900'}`}
                 placeholder="Ex: 2026"
               />
@@ -244,20 +244,20 @@ export const EventModal = () => {
 };
 
 export const ReservaModal = () => {
-  const { 
-    theme, 
-    showReservaModal, 
-    setShowReservaModal, 
-    books, 
-    users, 
-    user: loggedUser, 
+  const {
+    theme,
+    showReservaModal,
+    setShowReservaModal,
+    books,
+    users,
+    user: loggedUser,
     handleReservarLivro,
     getCDDAreaName
   } = useDashboard();
 
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(loggedUser?.tipoUsuario);
 
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
   const [userSearch, setUserSearch] = useState('');
@@ -340,10 +340,7 @@ export const ReservaModal = () => {
       `}>
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Sparkles className="text-amber-500" size={20} />
-              Nova Reserva
-            </h3>
+            <h3 className="text-xl font-bold">Nova Reserva</h3>
             <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Solicitação de reserva de livros do acervo.
             </p>
@@ -510,7 +507,7 @@ export const ReservaModal = () => {
                 )}
               </div>
             </div>
-            
+
             {ehBibliotecaria && (
               <button
                 type="button"

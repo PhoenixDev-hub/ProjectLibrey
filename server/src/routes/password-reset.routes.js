@@ -22,7 +22,8 @@ router.post("/validate", validatePasswordResetTokenController)
 
 router.post("/reset", generalLimiter, resetPasswordController)
 
-router.post('/test', generalLimiter, async (req, res, next) => {
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/test', generalLimiter, async (req, res, next) => {
     try {
         const { email } = req.body
         if (!email) return res.status(400).json({ error: 'Email é obrigatório' })
@@ -31,6 +32,7 @@ router.post('/test', generalLimiter, async (req, res, next) => {
     } catch (err) {
         next(err)
     }
-})
+  })
+}
 
 export default router

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDashboard } from '../../contexts/DashboardContext';
 
 const monthNames = [
@@ -27,7 +27,10 @@ const borderColors = {
 
 export default function Calendar() {
   const { theme, calendarEvents, user, setShowEventModal, reservations } = useDashboard();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 1));
+  const [currentDate, setCurrentDate] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
   const [showAllEvents, setShowAllEvents] = useState(false);
   
   const isDark = theme === 'dark';
@@ -76,6 +79,17 @@ export default function Calendar() {
 
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
   const goToNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
+
+  useEffect(() => {
+    const syncCurrentMonth = () => {
+      const now = new Date();
+      setCurrentDate(new Date(now.getFullYear(), now.getMonth(), 1));
+    };
+
+    syncCurrentMonth();
+    const interval = setInterval(syncCurrentMonth, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const getEventsForDate = (day) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
