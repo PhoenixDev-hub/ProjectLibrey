@@ -79,7 +79,17 @@ const Inicio = () => {
 
   const radius = 38;
   const circumference = 2 * Math.PI * radius; 
-  let accumulatedPercentage = 0;
+  const chartSegments = acervoStats.data.map((stat, idx, stats) => {
+    const previousPercentage = stats
+      .slice(0, idx)
+      .reduce((total, current) => total + current.percentage, 0);
+
+    return {
+      ...stat,
+      dashArray: `${(stat.percentage * circumference) / 100} ${circumference}`,
+      dashOffset: -((previousPercentage * circumference) / 100),
+    };
+  });
 
   return (
     <div className="flex flex-col xl:flex-row gap-8">
@@ -161,12 +171,7 @@ const Inicio = () => {
                   fill="transparent"
                 />
 
-                {acervoStats.data.map((stat, idx) => {
-                  const dashArray = `${(stat.percentage * circumference) / 100} ${circumference}`;
-                  const dashOffset = -((accumulatedPercentage * circumference) / 100);
-                  accumulatedPercentage += stat.percentage;
-
-                  return (
+                {chartSegments.map((stat, idx) => (
                     <circle
                       key={idx}
                       cx="50"
@@ -174,14 +179,13 @@ const Inicio = () => {
                       r={radius}
                       stroke={stat.strokeColor}
                       strokeWidth="8"
-                      strokeDasharray={dashArray}
-                      strokeDashoffset={dashOffset}
+                      strokeDasharray={stat.dashArray}
+                      strokeDashoffset={stat.dashOffset}
                       fill="transparent"
                       strokeLinecap="round"
                       className="transition-all duration-500 ease-out"
                     />
-                  );
-                })}
+                ))}
               </svg>
 
               <div className="absolute flex flex-col items-center justify-center">
@@ -229,16 +233,20 @@ const Inicio = () => {
   );
 };
 
-const StatCard = ({ title, value, icon: Icon, colorClass, isDark }) => (
-  <div className={`rounded-3xl border p-5 shadow-sm flex items-center gap-4 transition hover:scale-[1.02] ${isDark ? 'border-white/10 bg-slate-900' : 'border-gray-200 bg-white'}`}>
-    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>
-      <Icon size={24} strokeWidth={2.5} />
+const StatCard = ({ title, value, icon, colorClass, isDark }) => {
+  const IconComponent = icon;
+
+  return (
+    <div className={`rounded-3xl border p-5 shadow-sm flex items-center gap-4 transition hover:scale-[1.02] ${isDark ? 'border-white/10 bg-slate-900' : 'border-gray-200 bg-white'}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${colorClass}`}>
+        <IconComponent size={24} strokeWidth={2.5} />
+      </div>
+      <div>
+        <p className={`text-2xl font-bold leading-none mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
+        <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{title}</p>
+      </div>
     </div>
-    <div>
-      <p className={`text-2xl font-bold leading-none mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{value}</p>
-      <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{title}</p>
-    </div>
-  </div>
-);
+  );
+};
 
 export default Inicio;

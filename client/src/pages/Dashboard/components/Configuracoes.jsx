@@ -12,8 +12,7 @@ const Configuracoes = () => {
     user, 
     libraryConfig, 
     handleUpdateProfile, 
-    handleUpdateLibraryConfig, 
-    loading 
+    handleUpdateLibraryConfig
   } = useDashboard();
 
   const isDark = theme === 'dark';

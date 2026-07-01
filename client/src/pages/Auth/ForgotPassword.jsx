@@ -20,8 +20,7 @@ export default function ForgotPassword() {
   const isFormValid = email && !validationErrors.email;
 
   const validateEmail = (value) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(value);
+    return requestPasswordResetSchema.safeParse({ email: value }).success;
   };
 
   const handleEmailChange = (e) => {

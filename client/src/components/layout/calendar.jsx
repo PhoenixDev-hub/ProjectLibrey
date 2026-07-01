@@ -219,7 +219,7 @@ export default function Calendar() {
                 : 'max-h-none overflow-visible'
             }`}>
               {(showAllEvents ? uniqueMonthEvents : uniqueMonthEvents.slice(0, 2)).map((e, idx) => {
-                const [y, m, d] = e.date.split('-').map(Number);
+                const [, m, d] = e.date.split('-').map(Number);
                 return (
                   <div 
                     key={idx} 

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 import { prisma } from "../../lib/prisma.js"
 import { config } from "../config/env.js"
 
-function createAccessToken(usuario) {
+export function createAccessToken(usuario) {
   return jwt.sign(
     {
       id: usuario.id,
@@ -15,7 +15,7 @@ function createAccessToken(usuario) {
   )
 }
 
-async function createRefreshToken(usuarioId) {
+export async function createRefreshToken(usuarioId) {
   const token = crypto.randomBytes(32).toString("hex")
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
 

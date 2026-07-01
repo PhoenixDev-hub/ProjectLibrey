@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { prisma } from "../../lib/prisma.js";
-import { config } from "../config/env.js";
+import { createAccessToken, createRefreshToken } from "./auth.service.js";
 
 export async function criarUsuario(data) {
   const senhaHash = await bcrypt.hash(data.senha, 10);
@@ -13,17 +12,12 @@ export async function criarUsuario(data) {
     },
   });
 
-  const token = jwt.sign(
-    {
-      id: usuario.id,
-      tipoUsuario: usuario.tipoUsuario,
-    },
-    config.jwt.secret,
-    { expiresIn: "7d" }
-  );
+  const token = createAccessToken(usuario);
+  const refreshToken = await createRefreshToken(usuario.id);
 
   return {
     token,
+    refreshToken,
     usuario: {
       id: usuario.id,
       nome: usuario.nome,
@@ -124,4 +118,3 @@ export async function atualizarUsuarioStatus(id, status) {
   });
   return usuario;
 }
-

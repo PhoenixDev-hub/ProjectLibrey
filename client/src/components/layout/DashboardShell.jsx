@@ -7,7 +7,7 @@ import { useDashboard } from '../../contexts/DashboardContext';
 
 const DashboardShell = ({ children }) => {
   const { 
-    theme, setTheme, sidebarOpen, setSidebarOpen, activeTab, setActiveTab,
+    theme, setTheme, sidebarOpen, activeTab, setActiveTab,
     user, logout, notificationsOpen, setNotificationsOpen, profileOpen, setProfileOpen,
     searchQuery, setSearchQuery, notifications, handleMarkAsRead, handleMarkAllAsRead
   } = useDashboard();

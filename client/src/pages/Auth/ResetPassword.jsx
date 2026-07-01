@@ -2,9 +2,6 @@ import { AlertCircle, CheckCircle, Eye, EyeOff, Loader2, Lock } from "lucide-rea
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../services/api";
-import { validateResetToken, resetPassword } from "../../services/password.service";
-
-
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();

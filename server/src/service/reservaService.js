@@ -1,49 +1,63 @@
 import { prisma } from "../../lib/prisma.js";
 
 async function criarReservas(usuarioId, livroId) {
-    const exemplar = await prisma.exemplar.findFirst({
-        where: {
-            livroId,
-            status: "DISPONIVEL"
-        },
-        include: {
-            livro: true
-        }
-    });
-
-    if (!exemplar) {
-        throw new Error("Nenhum exemplar disponível para reserva");
-    }
-
-    const reservaExistente = await prisma.reserva.findFirst({
-        where: {
-            usuarioId,
-            exemplar: {
-                livroId
-            },
-            status: { in: ["PENDENTE", "APROVADO", "RETIRADO"] }
-        }
-    });
-
-    if (reservaExistente) {
-        throw new Error("Você já tem uma reserva ativa para este livro");
-    }
-
-    const config = await prisma.configuracao.findFirst({ where: { id: 1 } });
-    const limite = config ? config.limiteEmprestimos : 5;
-
-    const totalAtivas = await prisma.reserva.count({
-        where: {
-            usuarioId,
-            status: { in: ["PENDENTE", "APROVADO", "RETIRADO"] }
-        }
-    });
-
-    if (totalAtivas >= limite) {
-        throw new Error(`Você atingiu o limite de ${limite} reservas/empréstimos ativos simultâneos.`);
-    }
-
     const resultado = await prisma.$transaction(async (tx) => {
+        const reservaExistente = await tx.reserva.findFirst({
+            where: {
+                usuarioId,
+                exemplar: {
+                    livroId
+                },
+                status: { in: ["PENDENTE", "APROVADO", "RETIRADO"] }
+            }
+        });
+
+        if (reservaExistente) {
+            throw new Error("Você já tem uma reserva ativa para este livro");
+        }
+
+        const config = await tx.configuracao.findFirst({ where: { id: 1 } });
+        const limite = config ? config.limiteEmprestimos : 5;
+
+        const totalAtivas = await tx.reserva.count({
+            where: {
+                usuarioId,
+                status: { in: ["PENDENTE", "APROVADO", "RETIRADO"] }
+            }
+        });
+
+        if (totalAtivas >= limite) {
+            throw new Error(`Você atingiu o limite de ${limite} reservas/empréstimos ativos simultâneos.`);
+        }
+
+        const exemplar = await tx.exemplar.findFirst({
+            where: {
+                livroId,
+                status: "DISPONIVEL"
+            },
+            include: {
+                livro: true
+            }
+        });
+
+        if (!exemplar) {
+            throw new Error("Nenhum exemplar disponível para reserva");
+        }
+
+        const exemplarAtualizado = await tx.exemplar.updateMany({
+            where: {
+                id: exemplar.id,
+                status: "DISPONIVEL"
+            },
+            data: {
+                status: "RESERVADO"
+            }
+        });
+
+        if (exemplarAtualizado.count !== 1) {
+            throw new Error("Este exemplar acabou de ser reservado. Tente novamente.");
+        }
+
         const reserva = await tx.reserva.create({
             data: {
                 usuarioId,
@@ -60,15 +74,6 @@ async function criarReservas(usuarioId, livroId) {
             }
         });
 
-        await tx.exemplar.update({
-            where: {
-                id: exemplar.id
-            },
-            data: {
-                status: "RESERVADO"
-            }
-        });
-
         const bibliotecarias = await tx.usuario.findMany({
             where: {
                 tipoUsuario: {
@@ -80,15 +85,17 @@ async function criarReservas(usuarioId, livroId) {
             }
         });
 
-        await tx.notificacao.createMany({
-            data: bibliotecarias.map((bib) => ({
-                usuarioId: bib.id,
-                reservaId: reserva.id,
-                tipo: "NOVA_RESERVA",
-                titulo: `Nova reserva para ${reserva.exemplar.livro.titulo}`,
-                mensagem: `O usuário ${reserva.usuario.nome} fez uma nova reserva para o livro ${reserva.exemplar.livro.titulo}.`
-            }))
-        });
+        if (bibliotecarias.length > 0) {
+            await tx.notificacao.createMany({
+                data: bibliotecarias.map((bib) => ({
+                    usuarioId: bib.id,
+                    reservaId: reserva.id,
+                    tipo: "NOVA_RESERVA",
+                    titulo: `Nova reserva para ${reserva.exemplar.livro.titulo}`,
+                    mensagem: `O usuário ${reserva.usuario.nome} fez uma nova reserva para o livro ${reserva.exemplar.livro.titulo}.`
+                }))
+            });
+        }
 
         return reserva;
     });
@@ -170,11 +177,15 @@ async function atualizarStatusReserva(reservaId, bibliotecariaId, acao) {
                     usuarioId: reserva.usuarioId,
                     reservaId: null,
                     tipo: "RESERVA_REJEITADA",
-                    titulo: `Reserva rejei\tada para ${reserva.exemplar.livro.titulo}`,
+                    titulo: `Reserva rejeitada para ${reserva.exemplar.livro.titulo}`,
                     mensagem: `Sua reserva para o livro ${reserva.exemplar.livro.titulo} foi rejeitada.`
                 }
             });
         });
+    } else {
+        const err = new Error("Ação inválida para atualização de reserva");
+        err.status = 400;
+        throw err;
     }
 }
 

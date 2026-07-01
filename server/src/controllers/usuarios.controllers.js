@@ -1,7 +1,7 @@
 import { createUsuarioAdminSchema, createUsuarioSchema } from "../schemas/usuario.schemas.js";
 import { criarUsuario, listarUsuarios, atualizarUsuario } from "../service/usuario.service.js";
 
-export async function createUsuarioController(req, res) {
+export async function createUsuarioController(req, res, next) {
   try {
     const schema = req.baseUrl === "/usuarios" ? createUsuarioAdminSchema : createUsuarioSchema;
     const data = schema.parse({
@@ -12,23 +12,7 @@ export async function createUsuarioController(req, res) {
 
     return res.status(201).json(result);
   } catch (error) {
-    console.error("Erro ao criar usuário:", error);
-
-    if (error.code === "P2002") {
-      return res.status(409).json({ error: "Email já cadastrado" });
-    }
-
-    if (error.errors) {
-      return res.status(400).json({
-        error: "Dados inválidos",
-        details: error.errors,
-      });
-    }
-
-    return res.status(500).json({
-      error: "Erro interno do servidor",
-      message: error.message,
-    });
+    next(error);
   }
 }
 
