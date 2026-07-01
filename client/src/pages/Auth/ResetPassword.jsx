@@ -108,7 +108,7 @@ export default function ResetPassword() {
     setError("");
 
     if (!formData.novaSenha || !formData.confirmarSenha) {
-      setError("Preenchapreencha todos os campos");
+      setError("Preencha todos os campos");
       return;
     }
 

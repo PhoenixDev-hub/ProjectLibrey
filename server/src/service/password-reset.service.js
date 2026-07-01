@@ -36,12 +36,27 @@ export async function requestPasswordReset(email) {
 
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000)
 
+    const now = new Date()
+
+    await prisma.passwordReset.updateMany({
+      where: {
+        usuarioId: usuario.id,
+        usedAt: null,
+        expiresAt: {
+          gt: now,
+        },
+      },
+      data: {
+        usedAt: now,
+      },
+    })
+
     await prisma.passwordReset.deleteMany({
       where: {
         usuarioId: usuario.id,
         usedAt: null,
         expiresAt: {
-          lt: new Date(),
+          lt: now,
         },
       },
     })
@@ -111,6 +126,7 @@ export async function resetPassword(token, email, novaSenha) {
           gt: new Date(),
         },
       },
+      orderBy: { createdAt: 'desc' },
     })
 
     if (!passwordReset) {
@@ -172,6 +188,7 @@ export async function validatePasswordResetToken(token, email) {
           gt: new Date(),
         },
       },
+      orderBy: { createdAt: 'desc' },
     })
 
     if (!passwordReset) {

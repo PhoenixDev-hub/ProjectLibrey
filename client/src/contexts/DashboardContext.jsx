@@ -118,8 +118,8 @@ export const DashboardProvider = ({ children }) => {
       try {
         const resRes = await api.get('/reservas');
         setReservations(resRes.data);
-      } catch {
-        console.log('Error loading reservations');
+      } catch (error) {
+        console.error('Error loading reservations', error);
       }
 
       const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
@@ -127,37 +127,37 @@ export const DashboardProvider = ({ children }) => {
         try {
           const usersRes = await api.get('/usuarios');
           setUsers(usersRes.data);
-        } catch {
-          console.log('Error loading users');
+        } catch (error) {
+          console.error('Error loading users', error);
         }
       }
 
       try {
         const notifRes = await api.get('/notificacoes');
         setNotifications(notifRes.data.notificacoes || []);
-      } catch {
-        console.log('Error loading notifications');
+      } catch (error) {
+        console.error('Error loading notifications', error);
       }
 
       try {
         const duvidasRes = await api.get('/duvidas');
         setDuvidas(duvidasRes.data || []);
-      } catch {
-        console.log('Error loading duvidas');
+      } catch (error) {
+        console.error('Error loading duvidas', error);
       }
 
       try {
         const configRes = await api.get('/configuracoes');
         setLibraryConfig(configRes.data || null);
-      } catch {
-        console.log('Error loading library config');
+      } catch (error) {
+        console.error('Error loading library config', error);
       }
 
       try {
         const eventsRes = await api.get('/eventos');
         setCalendarEvents(eventsRes.data || []);
-      } catch {
-        console.log('Error loading calendar events');
+      } catch (error) {
+        console.error('Error loading calendar events', error);
       }
     } catch (error) {
       setErrorMsg('Erro ao obter dados do servidor.');

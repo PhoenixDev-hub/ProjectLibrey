@@ -1,5 +1,6 @@
 import { createUsuarioAdminSchema, createUsuarioSchema } from "../schemas/usuario.schemas.js";
 import { criarUsuario, listarUsuarios, atualizarUsuario } from "../service/usuario.service.js";
+import logger from "../utils/logger.js";
 
 export async function createUsuarioController(req, res, next) {
   try {
@@ -21,7 +22,7 @@ export async function listarUsuariosController(req, res, next) {
     const users = await listarUsuarios();
     return res.json(users);
   } catch (error) {
-    console.error("Erro ao listar usuários:", error);
+    logger.error("Erro ao listar usuários", { error: error.message });
     next(error);
   }
 }
@@ -32,7 +33,7 @@ export async function atualizarUsuarioController(req, res, next) {
     const user = await atualizarUsuario(id, req.body);
     return res.json(user);
   } catch (error) {
-    console.error("Erro ao atualizar usuário:", error);
+    logger.error("Erro ao atualizar usuário", { error: error.message });
     next(error);
   }
 }

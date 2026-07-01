@@ -36,20 +36,21 @@ export async function atualizarConfiguracoes(req, res, next) {
       permitirRenovacao, 
       nomeBiblioteca 
     } = req.body;
+    const renovacao = permitirRenovacao === true || permitirRenovacao === 'true';
 
     const config = await prisma.configuracao.upsert({
       where: { id: CONFIG_ID },
       update: {
         prazoDevolucao: prazoDevolucao !== undefined ? Number(prazoDevolucao) : undefined,
         limiteEmprestimos: limiteEmprestimos !== undefined ? Number(limiteEmprestimos) : undefined,
-        permitirRenovacao: permitirRenovacao !== undefined ? Boolean(permitirRenovacao) : undefined,
+        permitirRenovacao: permitirRenovacao !== undefined ? renovacao : undefined,
         nomeBiblioteca: nomeBiblioteca !== undefined ? nomeBiblioteca.trim() : undefined,
       },
       create: {
         id: CONFIG_ID,
         prazoDevolucao: prazoDevolucao !== undefined ? Number(prazoDevolucao) : 30,
         limiteEmprestimos: limiteEmprestimos !== undefined ? Number(limiteEmprestimos) : 5,
-        permitirRenovacao: permitirRenovacao !== undefined ? Boolean(permitirRenovacao) : true,
+        permitirRenovacao: permitirRenovacao !== undefined ? renovacao : true,
         nomeBiblioteca: nomeBiblioteca !== undefined ? nomeBiblioteca.trim() : "Biblioteca ProjectLibrey",
       }
     });
