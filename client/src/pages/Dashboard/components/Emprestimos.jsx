@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { useDashboard } from '../../../contexts/DashboardContext';
-import { 
-  ShoppingCart, Search, Filter, AlertCircle, CheckCircle2, Clock, 
-  ArrowLeftRight, Calendar, User, BookOpen, RefreshCw 
+import {
+    AlertCircle,
+    BookOpen,
+    CheckCircle2, Clock,
+    Search,
+    ShoppingCart,
+    User
 } from 'lucide-react';
+import { useState } from 'react';
+import { useDashboard } from '../../../contexts/DashboardContext';
 
 const Emprestimos = () => {
-  const { 
-    theme, reservations, user, 
-    handleRegistrarDevolucao, handleRegistrarRetirada, loading 
+  const {
+    theme, reservations, user,
+    handleRegistrarDevolucao, handleRegistrarRetirada, loading, errorMsg
   } = useDashboard();
-  
+
   const isDark = theme === 'dark';
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,7 +25,7 @@ const Emprestimos = () => {
 
   const hoje = new Date();
 
-  const loans = safeReservations.filter(r => 
+  const loans = safeReservations.filter(r =>
     r.status === 'RETIRADO' || r.status === 'DEVOLVIDO' || r.status === 'APROVADO'
   );
 
@@ -42,7 +46,7 @@ const Emprestimos = () => {
   })();
 
   const filteredLoans = loans.filter(l => {
-    const matchesSearch = 
+    const matchesSearch =
       (l.exemplar?.livro?.titulo && l.exemplar.livro.titulo.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (l.exemplar?.livro?.autor && l.exemplar.livro.autor.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (l.usuario?.nome && l.usuario.nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -79,7 +83,7 @@ const Emprestimos = () => {
         icon: Clock
       };
     }
-    
+
     const devolDate = new Date(loan.prazoDevol);
     if (devolDate < hoje) {
       return {
@@ -117,6 +121,75 @@ const Emprestimos = () => {
     }
     return '-';
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe o status das leituras ativas e os prazos.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-sky-400' : 'bg-indigo-50 text-indigo-600'}`}>
+            <ShoppingCart size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Carregando empréstimos...</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Estamos organizando os empréstimos e os prazos.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe o status das leituras ativas e os prazos.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Não foi possível carregar os empréstimos</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredLoans.length === 0) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe o status das leituras ativas e os prazos.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
+            <ShoppingCart size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nenhum empréstimo encontrado</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Não há registros de empréstimos para os filtros atuais.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">

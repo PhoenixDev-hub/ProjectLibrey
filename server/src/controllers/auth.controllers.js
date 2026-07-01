@@ -1,5 +1,5 @@
 import { loginSchema } from "../schemas/auth.schemas.js";
-import { getCurrentUserService, loginService } from "../service/auth.service.js";
+import { getCurrentUserService, loginService, logoutService, refreshTokenService } from "../service/auth.service.js";
 import { atualizarUsuario } from "../service/usuario.service.js";
 import logger from "../utils/logger.js";
 
@@ -37,6 +37,28 @@ export async function getCurrentUser(req, res, next) {
   }
 }
 
+export async function refreshTokenController(req, res, next) {
+  try {
+    const { refreshToken } = req.body;
+    const result = await refreshTokenService(refreshToken);
+
+    return res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function logoutController(req, res, next) {
+  try {
+    const { refreshToken } = req.body;
+    await logoutService(refreshToken);
+
+    return res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function updateCurrentUser(req, res, next) {
   try {
     const usuarioId = req.usuario.id;
@@ -51,4 +73,3 @@ export async function updateCurrentUser(req, res, next) {
     next(error);
   }
 }
-

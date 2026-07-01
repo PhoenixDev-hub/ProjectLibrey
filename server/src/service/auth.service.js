@@ -1,7 +1,34 @@
 import bcrypt from "bcrypt"
+import crypto from "crypto"
 import jwt from "jsonwebtoken"
 import { prisma } from "../../lib/prisma.js"
 import { config } from "../config/env.js"
+
+function createAccessToken(usuario) {
+  return jwt.sign(
+    {
+      id: usuario.id,
+      tipoUsuario: usuario.tipoUsuario,
+    },
+    config.jwt.secret,
+    { expiresIn: "15m" }
+  )
+}
+
+async function createRefreshToken(usuarioId) {
+  const token = crypto.randomBytes(32).toString("hex")
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+
+  await prisma.refreshToken.create({
+    data: {
+      token,
+      usuarioId,
+      expiresAt,
+    },
+  })
+
+  return token
+}
 
 export async function loginService(email, senha) {
   const usuario = await prisma.usuario.findUnique({
@@ -22,17 +49,12 @@ export async function loginService(email, senha) {
     throw new Error("Credenciais inválidas")
   }
 
-  const token = jwt.sign(
-    {
-      id: usuario.id,
-      tipoUsuario: usuario.tipoUsuario
-    },
-    config.jwt.secret,
-    { expiresIn: "7d" }
-  )
+  const token = createAccessToken(usuario)
+  const refreshToken = await createRefreshToken(usuario.id)
 
   return {
     token,
+    refreshToken,
     usuario: {
       id: usuario.id,
       nome: usuario.nome,
@@ -40,6 +62,53 @@ export async function loginService(email, senha) {
       tipoUsuario: usuario.tipoUsuario,
     },
   }
+}
+
+export async function refreshTokenService(refreshToken) {
+  if (!refreshToken) {
+    throw new Error("Refresh token não fornecido")
+  }
+
+  const storedToken = await prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+  })
+
+  if (!storedToken) {
+    throw new Error("Refresh token inválido")
+  }
+
+  if (storedToken.expiresAt < new Date()) {
+    await prisma.refreshToken.delete({ where: { id: storedToken.id } })
+    throw new Error("Refresh token expirado")
+  }
+
+  const usuario = await prisma.usuario.findUnique({
+    where: { id: storedToken.usuarioId },
+  })
+
+  if (!usuario || usuario.status !== "ATIVO") {
+    throw new Error("Usuário inválido")
+  }
+
+  const accessToken = createAccessToken(usuario)
+  const newRefreshToken = await createRefreshToken(usuario.id)
+
+  await prisma.refreshToken.delete({ where: { id: storedToken.id } })
+
+  return {
+    token: accessToken,
+    refreshToken: newRefreshToken,
+  }
+}
+
+export async function logoutService(refreshToken) {
+  if (!refreshToken) {
+    return
+  }
+
+  await prisma.refreshToken.deleteMany({
+    where: { token: refreshToken },
+  })
 }
 
 export async function getCurrentUserService(usuarioId) {

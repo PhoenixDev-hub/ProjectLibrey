@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
-import { useDashboard } from '../../../contexts/DashboardContext';
-import { 
-  Calendar, Search, Filter, AlertCircle, Clock, 
-  User, BookOpen, Check, X, ShieldAlert, Users 
+import {
+    AlertCircle,
+    BookOpen,
+    Calendar,
+    Check,
+    Clock,
+    Search,
+    User,
+    Users,
+    X
 } from 'lucide-react';
+import { useState } from 'react';
+import { useDashboard } from '../../../contexts/DashboardContext';
 
 const Reservas = () => {
-  const { 
-    theme, reservations, user, 
-    handleAtualizarReservaStatus, loading 
+  const {
+    theme, reservations, user,
+    handleAtualizarReservaStatus, loading, errorMsg
   } = useDashboard();
-  
+
   const isDark = theme === 'dark';
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,6 +52,75 @@ const Reservas = () => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-emerald-650 to-emerald-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Reservas</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie as intenções de leitura e as solicitações pendentes.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-sky-400' : 'bg-emerald-50 text-emerald-600'}`}>
+            <Calendar size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Carregando reservas...</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Estamos reunindo as solicitações de leitura mais recentes.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-emerald-650 to-emerald-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Reservas</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie as intenções de leitura e as solicitações pendentes.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Não foi possível carregar as reservas</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (filteredReservations.length === 0) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-emerald-650 to-emerald-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Reservas</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie as intenções de leitura e as solicitações pendentes.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
+            <Calendar size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nenhuma reserva pendente</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>As solicitações de reserva aparecerão aqui assim que forem recebidas.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-8">

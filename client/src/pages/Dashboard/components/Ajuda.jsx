@@ -1,21 +1,29 @@
-import React, { useState } from 'react';
-import { useDashboard } from '../../../contexts/DashboardContext';
-import { 
-  HelpCircle, Send, CheckCircle2, Clock, 
-  MessageSquare, Phone, Mail, User, Check, 
-  AlertCircle, Search, Filter, MessageCircle, X
+import {
+    AlertCircle,
+    Check,
+    CheckCircle2, Clock,
+    HelpCircle,
+    Mail,
+    MessageCircle,
+    MessageSquare, Phone,
+    Search,
+    Send,
+    X
 } from 'lucide-react';
+import { useState } from 'react';
+import { useDashboard } from '../../../contexts/DashboardContext';
 
 const Ajuda = () => {
-  const { 
-    theme, 
-    user, 
-    duvidas, 
-    handleCriarDuvida, 
-    handleResolverDuvida, 
-    loading 
+  const {
+    theme,
+    user,
+    duvidas,
+    handleCriarDuvida,
+    handleResolverDuvida,
+    loading,
+    errorMsg
   } = useDashboard();
-  
+
   const isDark = theme === 'dark';
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
 
@@ -44,7 +52,7 @@ const Ajuda = () => {
       const email = (d.usuario?.email || '').toLowerCase();
       const room = (d.usuario?.anoSala || '').toLowerCase();
       const question = d.duvida.toLowerCase();
-      
+
       return (
         studentName.includes(term) ||
         email.includes(term) ||
@@ -99,6 +107,75 @@ const Ajuda = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-600 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Central de Ajuda</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe as dúvidas e os atendimentos da biblioteca.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-sky-400' : 'bg-violet-50 text-violet-600'}`}>
+            <HelpCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Carregando ajuda...</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Estamos buscando as dúvidas e as respostas mais recentes.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-600 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Central de Ajuda</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe as dúvidas e os atendimentos da biblioteca.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Não foi possível carregar a central de ajuda</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (safeDuvidas.length === 0) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-600 to-indigo-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Central de Ajuda</h1>
+            <p className="opacity-90 font-medium mb-6">Acompanhe as dúvidas e os atendimentos da biblioteca.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
+            <HelpCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nenhuma dúvida registrada</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Quando alunos ou professores enviarem perguntas, elas aparecerão aqui.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8">
       {/* Header Card */}
@@ -108,7 +185,7 @@ const Ajuda = () => {
         <div className="relative z-10 text-white max-w-xl">
           <h1 className="text-3xl font-extrabold mb-2">Central de Ajuda</h1>
           <p className="opacity-90 font-medium mb-6">
-            {ehBibliotecaria 
+            {ehBibliotecaria
               ? 'Gerencie e responda às dúvidas dos leitores da biblioteca. Registre contatos realizados e envie esclarecimentos rápidos.'
               : 'Tem alguma dúvida sobre reservas, prazos, multas ou funcionamento? Envie sua pergunta diretamente para a bibliotecária.'
             }
@@ -116,7 +193,7 @@ const Ajuda = () => {
           <div className="flex gap-4">
             <div className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 backdrop-blur-md bg-white/10 text-white border border-white/10`}>
               <HelpCircle size={14} />
-              {ehBibliotecaria 
+              {ehBibliotecaria
                 ? `${pendingCount} dúvida(s) aguardando atendimento`
                 : 'Suporte Direto e Prático'
               }
@@ -144,8 +221,8 @@ const Ajuda = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Pesquisar por leitor, sala ou dúvida..."
                 className={`w-full pl-11 pr-4 py-3 rounded-2xl border text-sm transition-all outline-none font-medium
-                  ${isDark 
-                    ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500' 
+                  ${isDark
+                    ? 'bg-slate-900 border-white/10 text-white placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
                     : 'bg-white border-gray-200 text-slate-950 placeholder-slate-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500'
                   }`}
               />
@@ -202,7 +279,7 @@ const Ajuda = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredDuvidas.map((item) => (
-                <div 
+                <div
                   key={item.id}
                   className={`rounded-3xl border p-6 flex flex-col justify-between shadow-sm transition-all duration-300 relative overflow-hidden group
                     ${isDark ? 'border-white/10 bg-slate-900/60' : 'border-gray-200 bg-white'}
@@ -219,7 +296,7 @@ const Ajuda = () => {
                           {item.usuario?.anoSala || 'Professor / Outro'}
                         </span>
                       </div>
-                      
+
                       {item.resolvida ? (
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide flex items-center gap-1 uppercase bg-emerald-500/10 text-emerald-500`}>
                           <Check size={10} strokeWidth={3} /> Resolvido
@@ -278,8 +355,8 @@ const Ajuda = () => {
                             placeholder="Escreva uma resposta ou notas sobre o contato (opcional)..."
                             rows={3}
                             className={`w-full p-3 rounded-xl border text-xs transition-all outline-none font-medium resize-none
-                              ${isDark 
-                                ? 'bg-slate-950 border-white/10 text-white placeholder-slate-650 focus:border-sky-500 focus:ring-1 focus:ring-sky-500' 
+                              ${isDark
+                                ? 'bg-slate-950 border-white/10 text-white placeholder-slate-650 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
                                 : 'bg-white border-gray-200 text-slate-950 placeholder-slate-400 focus:border-violet-500 focus:focus:ring-1 focus:ring-violet-500'
                               }`}
                           />
@@ -299,8 +376,8 @@ const Ajuda = () => {
                                 setRespostaText('');
                               }}
                               className={`px-3 py-2 rounded-xl text-xs font-bold border transition
-                                ${isDark 
-                                  ? 'border-white/10 text-slate-350 hover:bg-slate-800 hover:text-white' 
+                                ${isDark
+                                  ? 'border-white/10 text-slate-350 hover:bg-slate-800 hover:text-white'
                                   : 'border-gray-200 text-slate-600 hover:bg-gray-150 hover:text-slate-900'
                                 }`}
                             >
@@ -315,8 +392,8 @@ const Ajuda = () => {
                             setRespostaText('');
                           }}
                           className={`w-full py-2.5 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 border transition-all duration-300
-                            ${isDark 
-                              ? 'border-sky-500/20 text-sky-400 hover:bg-sky-500/10' 
+                            ${isDark
+                              ? 'border-sky-500/20 text-sky-400 hover:bg-sky-500/10'
                               : 'border-violet-200 text-violet-650 hover:bg-violet-50'
                             }`}
                         >
@@ -362,8 +439,8 @@ const Ajuda = () => {
                     rows={5}
                     required
                     className={`w-full p-4 rounded-2xl border text-sm transition-all outline-none font-medium resize-none
-                      ${isDark 
-                        ? 'bg-slate-950 border-white/10 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500' 
+                      ${isDark
+                        ? 'bg-slate-950 border-white/10 text-white placeholder-slate-600 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
                         : 'bg-white border-gray-200 text-slate-950 placeholder-slate-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500'
                       }`}
                   />

@@ -1,22 +1,26 @@
 function validateEnv() {
   const env = process.env.NODE_ENV || 'development';
 
-
   if (env === 'production') {
     const required = ['DATABASE_URL', 'JWT_SECRET', 'SMTP_HOST', 'SMTP_PORT', 'SMTP_USER', 'SMTP_PASS', 'EMAIL_FROM', 'FRONTEND_URL'];
     const missing = required.filter(v => !process.env[v]);
+
     if (missing.length) {
       throw new Error(`Variáveis de ambiente faltando para produção: ${missing.join(', ')}\nVerifique seu arquivo .env`);
     }
   } else {
-
     const warnings = [];
-    if (!process.env.JWT_SECRET) warnings.push('JWT_SECRET (usando valor padrão de desenvolvimento)');
-    if (!process.env.DATABASE_URL) warnings.push('DATABASE_URL (sem conexão com DB)');
+
+    if (!process.env.JWT_SECRET) {
+      warnings.push('JWT_SECRET');
+    }
+
+    if (!process.env.DATABASE_URL) {
+      warnings.push('DATABASE_URL');
+    }
+
     if (warnings.length) {
-
-
-      console.warn('Aviso de ambiente:', warnings.join('; '));
+      console.warn('\x1b[33m⚠ AVISO: JWT_SECRET não definido. Usando valor padrão inseguro. NÃO use em produção!\x1b[0m');
     }
   }
 }

@@ -1,137 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { AlertCircle, ArrowLeft, Bookmark, BookOpen, ChevronLeft, ChevronRight, Heart, Star, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDashboard } from '../../../contexts/DashboardContext';
-import { Heart, Star, ChevronLeft, ChevronRight, Bookmark, BookOpen, ArrowLeft, X } from 'lucide-react';
-
-const coverCache = new Map();
-const pendingCoverRequests = new Map();
-const COVER_CACHE_PREFIX = 'book_cover_v3:';
-
-const cleanBookText = (text) => {
-  if (!text) return '';
-  return String(text)
-    .replace(/\([^)]*\)/g, '')
-    .replace(/\[[^\]]*\]/g, '')
-    .replace(/-\s*vol(ume)?\s*\d*/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
-const makeCoverCacheKey = (title, author) => {
-  return `${cleanBookText(title)}-${cleanBookText(author)}`.toLowerCase();
-};
-
-const readStoredCover = (key) => {
-  try {
-    return localStorage.getItem(`${COVER_CACHE_PREFIX}${key}`);
-  } catch {
-    return null;
-  }
-};
-
-const storeCover = (key, value) => {
-  if (!value) return;
-
-  try {
-    localStorage.setItem(`${COVER_CACHE_PREFIX}${key}`, value);
-  } catch {
-  }
-};
-
-const removeStoredCover = (key) => {
-  try {
-    localStorage.removeItem(`${COVER_CACHE_PREFIX}${key}`);
-  } catch {
-  }
-};
-
-const fetchWithTimeout = async (url, options = {}, timeoutMs = 3500) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timeout);
-  }
-};
-
-const coverUrlFromId = (coverId, size) => {
-  const coverSize = size === 'lg' ? 'L' : 'M';
-  return `https://covers.openlibrary.org/b/id/${coverId}-${coverSize}.jpg`;
-};
-
-const coverUrlFromGoogleBook = (book) => {
-  const links = book?.volumeInfo?.imageLinks;
-  const url = links?.thumbnail || links?.smallThumbnail;
-  if (!url) return null;
-
-  return url
-    .replace(/^http:\/\//, 'https://')
-    .replace('zoom=1', 'zoom=2');
-};
-
-const findCoverByTitleAndAuthor = async ({ title, author, size }) => {
-  const cleanTitle = cleanBookText(title);
-  const cleanAuthor = cleanBookText(author);
-
-  if (!cleanTitle) return null;
-
-  const params = new URLSearchParams({
-    title: cleanTitle,
-    fields: 'cover_i,title,author_name',
-    limit: '5',
-  });
-
-  if (cleanAuthor && !['desconhecido', 'vários', 'varios', 'diversos', 'sem autor'].includes(cleanAuthor.toLowerCase())) {
-    params.set('author', cleanAuthor);
-  }
-
-  let response = await fetchWithTimeout(`https://openlibrary.org/search.json?${params.toString()}`);
-  let data = await response.json();
-  let match = data.docs?.find((doc) => doc.cover_i);
-
-  if (!match && cleanAuthor) {
-    const fallbackParams = new URLSearchParams({
-      q: `${cleanTitle} ${cleanAuthor}`,
-      fields: 'cover_i,title,author_name',
-      limit: '5',
-    });
-    response = await fetchWithTimeout(`https://openlibrary.org/search.json?${fallbackParams.toString()}`);
-    data = await response.json();
-    match = data.docs?.find((doc) => doc.cover_i);
-  }
-
-  if (match?.cover_i) {
-    return coverUrlFromId(match.cover_i, size);
-  }
-
-  const googleQuery = cleanAuthor
-    ? `intitle:${cleanTitle} inauthor:${cleanAuthor}`
-    : `intitle:${cleanTitle}`;
-  const googleParams = new URLSearchParams({
-    q: googleQuery,
-    maxResults: '5',
-    printType: 'books',
-  });
-
-  response = await fetchWithTimeout(`https://www.googleapis.com/books/v1/volumes?${googleParams.toString()}`);
-  data = await response.json();
-  const googleMatch = data.items?.find((item) => coverUrlFromGoogleBook(item));
-
-  return coverUrlFromGoogleBook(googleMatch);
-};
+import { useBookCover } from '../../../hooks/useBookCover';
 
 const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   const isSmall = size === 'sm';
   const isLarge = size === 'lg';
-  const cacheKey = makeCoverCacheKey(title, author);
-  const [coverUrl, setCoverUrl] = useState(() => imageUrl || coverCache.get(cacheKey) || readStoredCover(cacheKey) || null);
-  const [loading, setLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const elementRef = React.useRef(null);
+  const { coverUrl, loading } = useBookCover(title, author, size, imageUrl);
 
   const getGradient = (str) => {
     const gradients = [
@@ -151,117 +26,21 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
     return gradients[index];
   };
 
-  useEffect(() => {
-    if (imageUrl || coverUrl) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '600px' }
-    );
-
-    if (elementRef.current) {
-      observer.observe(elementRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [imageUrl, coverUrl]);
-
-  useEffect(() => {
-    if (imageUrl) {
-      setCoverUrl(imageUrl);
-      return;
-    }
-
-    if (!isVisible) return;
-
-    if (coverCache.has(cacheKey)) {
-      setCoverUrl(coverCache.get(cacheKey) || null);
-      return;
-    }
-
-    const storedCover = readStoredCover(cacheKey);
-    if (storedCover !== null) {
-      const cachedUrl = storedCover || null;
-      coverCache.set(cacheKey, cachedUrl);
-      setCoverUrl(cachedUrl);
-      return;
-    }
-
-    let active = true;
-    const searchBookCover = async () => {
-      if (!title) return;
-      setLoading(true);
-      try {
-        if (!pendingCoverRequests.has(cacheKey)) {
-          pendingCoverRequests.set(
-            cacheKey,
-            findCoverByTitleAndAuthor({ title, author, size }).finally(() => {
-              pendingCoverRequests.delete(cacheKey);
-            })
-          );
-        }
-
-        const foundCover = await pendingCoverRequests.get(cacheKey);
-        
-        if (!active) return;
-
-        if (foundCover) {
-          coverCache.set(cacheKey, foundCover);
-          storeCover(cacheKey, foundCover);
-        }
-        setCoverUrl(foundCover);
-
-        if (!foundCover) {
-          coverCache.delete(cacheKey);
-          removeStoredCover(cacheKey);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Erro ao buscar capa no Open Library:", err);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    searchBookCover();
-
-    return () => {
-      active = false;
-    };
-  }, [title, author, cacheKey, imageUrl, isVisible, size]);
-
   const gradient = getGradient(title);
 
   return (
-    <div 
-      ref={elementRef}
+    <div
       className={`relative shrink-0 overflow-hidden rounded-2xl shadow-lg border border-white/10 transition-all duration-300 hover:scale-[1.03]
         ${isSmall ? 'w-14 h-20' : (isLarge ? 'w-36 h-48 shadow-2xl border-white/20' : 'w-24 h-32')}
       `}
     >
       {coverUrl ? (
         <>
-          <img 
-            src={coverUrl} 
-            alt={title} 
+          <img
+            src={coverUrl}
+            alt={title}
             className="w-full h-full object-cover"
             loading="lazy"
-            onLoad={() => {
-              coverCache.set(cacheKey, coverUrl);
-              storeCover(cacheKey, coverUrl);
-            }}
-            onError={() => {
-              if (coverUrl) {
-                coverCache.delete(cacheKey);
-                removeStoredCover(cacheKey);
-                setCoverUrl(null);
-              }
-            }}
           />
           <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/30 to-transparent shadow-[inset_1px_0_0_rgba(255,255,255,0.1)]"></div>
         </>
@@ -269,7 +48,7 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
         <div className={`w-full h-full bg-gradient-to-br ${gradient} flex flex-col justify-between p-2 select-none`}>
           <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/40 to-transparent"></div>
           <div className="absolute inset-y-0 left-2 w-px bg-white/10"></div>
-          
+
           <span className={`font-black tracking-tight leading-tight line-clamp-3 text-white
             ${isSmall ? 'text-[7px] mt-1 ml-1.5' : (isLarge ? 'text-[14px] mt-4 ml-3' : 'text-[10px] mt-2 ml-2')}
           `}>
@@ -294,22 +73,24 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
 };
 
 const Catalogo = () => {
-  const { 
-    theme, 
-    user, 
-    books, 
-    reservations, 
-    handleReservarLivro, 
-    searchQuery, 
-    selectedCategory, 
-    setSelectedCategory, 
-    setSearchQuery, 
+  const {
+    theme,
+    user,
+    books,
+    reservations,
+    handleReservarLivro,
+    searchQuery,
+    selectedCategory,
+    setSelectedCategory,
+    setSearchQuery,
     getCDDAreaName,
     setShowBookModal,
     setEditingBook,
-    setBookForm
+    setBookForm,
+    loading,
+    errorMsg
   } = useDashboard();
-  
+
   const isDark = theme === 'dark';
   const ehAluno = user?.tipoUsuario === 'ALUNO';
 
@@ -320,7 +101,7 @@ const Catalogo = () => {
 
   const [lancPage, setLancPage] = useState(0);
   const [recPage, setRecPage] = useState(0);
-  
+
   useEffect(() => {
     if (user?.id) {
       try {
@@ -391,8 +172,8 @@ const Catalogo = () => {
     const matchesSearchText = (book, query) => {
       if (!query) return true;
       const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
-      return tokens.every(token => 
-        (book.titulo && book.titulo.toLowerCase().includes(token)) || 
+      return tokens.every(token =>
+        (book.titulo && book.titulo.toLowerCase().includes(token)) ||
         (book.autor && book.autor.toLowerCase().includes(token)) ||
         (getCDDAreaName(book.area).toLowerCase().includes(token))
       );
@@ -480,12 +261,12 @@ const Catalogo = () => {
       const rankedBooks = Object.entries(resCounts)
         .map(([id, count]) => ({ id, count }))
         .sort((a, b) => b.count - a.count);
-      
+
       maisLidos = rankedBooks.map(rank => {
         const book = books.find(b => b.id === rank.id);
-        return book ? { 
-          id: book.id, 
-          titulo: book.titulo, 
+        return book ? {
+          id: book.id,
+          titulo: book.titulo,
           autor: book.autor,
           area: book.area,
           sinopse: book.sinopse,
@@ -500,9 +281,9 @@ const Catalogo = () => {
     if (maisLidos.length < 7) {
       const list = hasRealBooks ? books : allFallbackBooks;
       const rest = list.filter(b => !maisLidos.find(m => m.id === b.id));
-      maisLidos = [...maisLidos, ...rest.slice(0, 7 - maisLidos.length).map(b => ({ 
-        id: b.id, 
-        titulo: b.titulo, 
+      maisLidos = [...maisLidos, ...rest.slice(0, 7 - maisLidos.length).map(b => ({
+        id: b.id,
+        titulo: b.titulo,
         autor: b.autor,
         area: b.area,
         sinopse: b.sinopse,
@@ -532,8 +313,8 @@ const Catalogo = () => {
                 Detalhes do Livro
               </span>
             </div>
-            <button 
-              onClick={() => setSelectedBookDetails(null)} 
+            <button
+              onClick={() => setSelectedBookDetails(null)}
               className={`p-1.5 rounded-full transition ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-gray-150 text-slate-500'}`}
             >
               <X size={18} />
@@ -542,18 +323,18 @@ const Catalogo = () => {
 
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex flex-col items-center gap-4 shrink-0 mx-auto md:mx-0">
-              <BookCover 
-                title={b.titulo} 
-                author={b.autor} 
-                imageUrl={b.imageUrl} 
-                size="lg" 
+              <BookCover
+                title={b.titulo}
+                author={b.autor}
+                imageUrl={b.imageUrl}
+                size="lg"
               />
               {ehAluno && (
                 <button
                   onClick={() => toggleFavorite(b.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition w-full justify-center
-                    ${favorites.has(b.id) 
-                      ? 'border-red-500/30 bg-red-500/10 text-red-500' 
+                    ${favorites.has(b.id)
+                      ? 'border-red-500/30 bg-red-500/10 text-red-500'
                       : isDark ? 'border-white/10 hover:bg-white/5 text-slate-400' : 'border-gray-200 hover:bg-gray-50 text-slate-650'}`}
                 >
                   <Heart size={14} className={favorites.has(b.id) ? 'fill-red-500' : ''} />
@@ -633,9 +414,96 @@ const Catalogo = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}
+        `}>
+          <div className="relative z-10 text-white flex-1">
+            <h1 className="text-3xl font-bold mb-2">
+              {ehAluno ? 'Explore o Acervo' : 'Catálogo da Biblioteca'}
+            </h1>
+            <p className="opacity-90 font-medium mb-6 max-w-xl">
+              {ehAluno
+                ? 'Encontre suas próximas leituras, favorite as obras que mais gostar e solicite reservas rápidas de forma simples.'
+                : 'Gerencie o acervo de obras da escola, cadastre novos exemplares, atualize informações e controle as categorias do sistema.'}
+            </p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/30' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-sky-400' : 'bg-amber-50 text-amber-600'}`}>
+            <BookOpen size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Carregando catálogo...</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Estamos preparando o acervo para você.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}
+        `}>
+          <div className="relative z-10 text-white flex-1">
+            <h1 className="text-3xl font-bold mb-2">
+              {ehAluno ? 'Explore o Acervo' : 'Catálogo da Biblioteca'}
+            </h1>
+            <p className="opacity-90 font-medium mb-6 max-w-xl">
+              {ehAluno
+                ? 'Encontre suas próximas leituras, favorite as obras que mais gostar e solicite reservas rápidas de forma simples.'
+                : 'Gerencie o acervo de obras da escola, cadastre novos exemplares, atualize informações e controle as categorias do sistema.'}
+            </p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/30' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Não foi possível carregar o catálogo</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!filteredBooks.length && (!ehAluno || activeView !== 'favoritos')) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}
+        `}>
+          <div className="relative z-10 text-white flex-1">
+            <h1 className="text-3xl font-bold mb-2">
+              {ehAluno ? 'Explore o Acervo' : 'Catálogo da Biblioteca'}
+            </h1>
+            <p className="opacity-90 font-medium mb-6 max-w-xl">
+              {ehAluno
+                ? 'Encontre suas próximas leituras, favorite as obras que mais gostar e solicite reservas rápidas de forma simples.'
+                : 'Gerencie o acervo de obras da escola, cadastre novos exemplares, atualize informações e controle as categorias do sistema.'}
+            </p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/30' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
+            <BookOpen size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nenhum livro encontrado</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Ajuste os filtros ou tente outra busca para encontrar obras no catálogo.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      
+
       <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
         ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-amber-600 to-yellow-500'}
       `}>
@@ -644,11 +512,11 @@ const Catalogo = () => {
             {ehAluno ? 'Explore o Acervo' : 'Catálogo da Biblioteca'}
           </h1>
           <p className="opacity-90 font-medium mb-6 max-w-xl">
-            {ehAluno 
+            {ehAluno
               ? 'Encontre suas próximas leituras, favorite as obras que mais gostar e solicite reservas rápidas de forma simples.'
               : 'Gerencie o acervo de obras da escola, cadastre novos exemplares, atualize informações e controle as categorias do sistema.'}
           </p>
-          
+
           {ehAluno ? (
             <div className="flex gap-1.5 p-1 rounded-xl max-w-xs bg-black/25 border border-white/10">
               <button
@@ -713,8 +581,8 @@ const Catalogo = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {favoritedBooks.map((b) => (
-                <div 
-                  key={b.id} 
+                <div
+                  key={b.id}
                   className={`rounded-[24px] border p-4 flex gap-4 backdrop-blur-xl transition hover:scale-[1.01] shadow-sm cursor-pointer
                     ${isDark ? 'border-white/5 bg-slate-900/40 hover:bg-slate-900/50' : 'border-gray-200 bg-white hover:bg-gray-50'}
                   `}
@@ -736,7 +604,7 @@ const Catalogo = () => {
                         </button>
                       </div>
                       <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate mb-1`}>{b.autor}</p>
-                      
+
                       <div className="flex gap-0.5 mt-2">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star key={i} size={11} className={i < 4 ? 'fill-yellow-500 text-yellow-500' : 'text-slate-500'} />
@@ -748,7 +616,7 @@ const Catalogo = () => {
                         {getCDDAreaName(b.area)}
                       </span>
                       {ehAluno && (
-                        <button 
+                        <button
                           onClick={() => handleReservarLivro(b.id)}
                           className="text-xs font-bold text-sky-500 hover:text-sky-400 transition"
                         >
@@ -768,7 +636,7 @@ const Catalogo = () => {
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <button 
+                  <button
                     onClick={handleVoltar}
                     className={`p-2.5 rounded-xl border transition cursor-pointer shadow-sm
                       ${isDark ? 'border-white/10 hover:bg-white/5 text-slate-400 hover:text-white' : 'border-gray-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900'}
@@ -797,8 +665,8 @@ const Catalogo = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredBooks.slice(0, visibleCount).map((b) => (
-                    <div 
-                      key={b.id} 
+                    <div
+                      key={b.id}
                       className={`rounded-[24px] border p-4 flex gap-4 backdrop-blur-xl transition hover:scale-[1.01] shadow-sm cursor-pointer
                         ${isDark ? 'border-white/5 bg-slate-900/40 hover:bg-slate-900/50' : 'border-gray-200 bg-white hover:bg-gray-50'}
                       `}
@@ -822,7 +690,7 @@ const Catalogo = () => {
                             )}
                           </div>
                           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate mb-1`}>{b.autor}</p>
-                          
+
                           <div className="flex gap-0.5 mt-2">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star key={i} size={11} className={i < 4 ? 'fill-yellow-500 text-yellow-500' : 'text-slate-500'} />
@@ -834,7 +702,7 @@ const Catalogo = () => {
                             {getCDDAreaName(b.area)}
                           </span>
                           {ehAluno && (
-                            <button 
+                            <button
                               onClick={() => handleReservarLivro(b.id)}
                               className="text-xs font-bold text-sky-500 hover:text-sky-400 transition"
                             >
@@ -850,7 +718,7 @@ const Catalogo = () => {
 
               {filteredBooks.length > visibleCount && (
                 <div className="flex justify-center mt-6">
-                  <button 
+                  <button
                     onClick={() => setVisibleCount(prev => prev + 12)}
                     className="px-6 py-2.5 font-bold text-xs tracking-wider uppercase bg-sky-500 hover:bg-sky-400 text-white rounded-xl transition shadow-md duration-200 cursor-pointer"
                   >
@@ -867,7 +735,7 @@ const Catalogo = () => {
                     Novidades
                   </h2>
                   <div className="flex gap-1">
-                    <button 
+                    <button
                       onClick={prevLanc}
                       disabled={maxLancPages <= 1}
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition border disabled:opacity-30 disabled:cursor-not-allowed
@@ -875,7 +743,7 @@ const Catalogo = () => {
                     >
                       <ChevronLeft size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={nextLanc}
                       disabled={maxLancPages <= 1}
                       className={`w-8 h-8 rounded-full flex items-center justify-center transition border disabled:opacity-30 disabled:cursor-not-allowed
@@ -888,8 +756,8 @@ const Catalogo = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {visibleLancamentos.map((b) => (
-                    <div 
-                      key={b.id} 
+                    <div
+                      key={b.id}
                       className={`
                         rounded-3xl border p-5 flex gap-4 backdrop-blur-xl bg-gradient-to-br shadow-sm transition hover:scale-[1.01] cursor-pointer
                         ${isDark ? 'text-white border-white/5' : 'bg-white border-gray-200 text-slate-900'}
@@ -916,7 +784,7 @@ const Catalogo = () => {
                             )}
                           </div>
                           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate mb-1`}>{b.autor}</p>
-                          
+
                           <div className="flex gap-0.5 mb-2">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star key={i} size={12} className={i < b.stars ? 'fill-yellow-500 text-yellow-500' : 'text-slate-500'} />
@@ -934,9 +802,9 @@ const Catalogo = () => {
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-slate-335' : 'bg-slate-100 text-slate-600'}`}>
                             {getCDDAreaName(b.area)}
                           </span>
-                          
+
                           {ehAluno && (
-                            <button 
+                            <button
                               onClick={() => handleReservarLivro(b.id)}
                               className="text-xs font-bold text-sky-500 hover:text-sky-400 transition"
                             >
@@ -951,14 +819,14 @@ const Catalogo = () => {
               </section>
 
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                
+
                 <div className="xl:col-span-2 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
                       Para Você
                     </h2>
                     <div className="flex gap-1">
-                      <button 
+                      <button
                         onClick={prevRec}
                         disabled={maxRecPages <= 1}
                         className={`w-8 h-8 rounded-full flex items-center justify-center transition border disabled:opacity-30 disabled:cursor-not-allowed
@@ -966,7 +834,7 @@ const Catalogo = () => {
                       >
                         <ChevronLeft size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={nextRec}
                         disabled={maxRecPages <= 1}
                         className={`w-8 h-8 rounded-full flex items-center justify-center transition border disabled:opacity-30 disabled:cursor-not-allowed
@@ -979,8 +847,8 @@ const Catalogo = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {visibleRecomendados.map((b) => (
-                      <div 
-                        key={b.id} 
+                      <div
+                        key={b.id}
                         className={`rounded-2xl border p-3 flex gap-3.5 shadow-sm items-center cursor-pointer
                           ${isDark ? 'border-white/5 bg-slate-900/40 hover:bg-slate-900/60' : 'border-gray-150 bg-white hover:bg-slate-50'}
                           transition-all
@@ -992,7 +860,7 @@ const Catalogo = () => {
                         <div className="flex-1 overflow-hidden">
                           <h3 className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>{b.titulo}</h3>
                           <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate mb-1.5`}>{b.autor}</p>
-                          
+
                           <div className="flex gap-0.5">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star key={i} size={11} className={i < b.stars ? 'fill-yellow-500 text-yellow-500' : 'text-slate-500'} />
@@ -1010,7 +878,7 @@ const Catalogo = () => {
                             </button>
                           )}
                           {ehAluno && (
-                            <button 
+                            <button
                               onClick={() => handleReservarLivro(b.id)}
                               className={`p-2 rounded-xl transition ${isDark ? 'bg-white/5 hover:bg-white/10 text-sky-400' : 'bg-slate-100 hover:bg-slate-200 text-blue-600'}`}
                               title="Reservar Livro"
@@ -1033,8 +901,8 @@ const Catalogo = () => {
 
                   <div className={`rounded-3xl border p-5 flex flex-col gap-4 shadow-sm ${isDark ? 'border-white/5 bg-slate-900/30' : 'border-gray-200 bg-white'}`}>
                     {catalogDataMaisLidos.map((b, idx) => (
-                      <div 
-                        key={b.id} 
+                      <div
+                        key={b.id}
                         className={`flex items-center justify-between gap-3 pb-3 border-b last:pb-0 last:border-b-0
                           ${isDark ? 'border-white/5' : 'border-gray-100'}
                         `}
@@ -1053,11 +921,11 @@ const Catalogo = () => {
                         </div>
 
                         {ehAluno && (
-                          <button 
+                          <button
                             onClick={() => toggleFavorite(b.id)}
                             className={`p-1 rounded-full transition-colors shrink-0 ${
-                              favorites.has(b.id) 
-                                ? 'text-red-500' 
+                              favorites.has(b.id)
+                                ? 'text-red-500'
                                 : isDark ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-655'
                             }`}
                           >
@@ -1075,7 +943,7 @@ const Catalogo = () => {
                 <h2 className={`text-xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
                   Explorar Coleções
                 </h2>
-                
+
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {categoriasDisponiveis.map((cat, idx) => {
                     const gradients = [
@@ -1085,7 +953,7 @@ const Catalogo = () => {
                       'from-violet-500/20 to-violet-600/30 border-violet-500/20 hover:border-violet-500/40 text-violet-450',
                     ];
                     return (
-                      <div 
+                      <div
                         key={idx}
                         onClick={() => setSelectedCategory(cat)}
                         className={`

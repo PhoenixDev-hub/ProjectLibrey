@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { useDashboard } from '../../../contexts/DashboardContext';
-import { 
-  Users, Search, Award, ShieldAlert, Edit2, Lock, Unlock, 
-  BookOpen, Plus, ChevronDown, ChevronUp, UserCheck, UserX, Trophy 
+import {
+    AlertCircle,
+    ChevronDown, ChevronUp,
+    Edit2, Lock,
+    Plus,
+    Search,
+    Trophy,
+    Unlock,
+    Users
 } from 'lucide-react';
+import { useState } from 'react';
+import { useDashboard } from '../../../contexts/DashboardContext';
 
 const Leitores = () => {
-  const { 
-    theme, users, reservations, 
-    handleToggleUserStatus, setShowUserModal, setEditingUser, setUserForm, loading 
+  const {
+    theme, users, reservations,
+    handleToggleUserStatus, setShowUserModal, setEditingUser, setUserForm, loading, errorMsg
   } = useDashboard();
 
   const isDark = theme === 'dark';
@@ -133,7 +139,7 @@ const Leitores = () => {
 
       if (u.tipoUsuario !== 'ALUNO' && u.tipoUsuario !== 'PROFESSOR') return;
 
-      const matchesSearch = 
+      const matchesSearch =
         (u.nome && u.nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (u.sobrenome && u.sobrenome.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -200,6 +206,75 @@ const Leitores = () => {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-650 to-violet-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Leitores</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie os leitores da escola e acompanhe a gincana.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-sky-400' : 'bg-violet-50 text-violet-600'}`}>
+            <Users size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Carregando leitores...</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Estamos organizando os dados dos leitores e das turmas.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-650 to-violet-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Leitores</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie os leitores da escola e acompanhe a gincana.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Não foi possível carregar os leitores</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (safeUsers.length === 0) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-violet-650 to-violet-500'}
+        `}>
+          <div className="relative z-10 text-white max-w-xl">
+            <h1 className="text-3xl font-extrabold mb-2">Leitores</h1>
+            <p className="opacity-90 font-medium mb-6">Gerencie os leitores da escola e acompanhe a gincana.</p>
+          </div>
+        </div>
+
+        <div className={`rounded-3xl border p-16 text-center ${isDark ? 'border-white/10 bg-slate-900/40' : 'border-gray-200 bg-white'}`}>
+          <div className={`w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 ${isDark ? 'bg-slate-800 text-slate-400' : 'bg-gray-100 text-gray-500'}`}>
+            <Users size={28} />
+          </div>
+          <p className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Nenhum leitor cadastrado</p>
+          <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Quando novos leitores forem cadastrados, eles aparecerão aqui.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
@@ -211,7 +286,7 @@ const Leitores = () => {
             Gerencie os leitores da escola e acompanhe a gincana. Turmas com 100% de entrega são premiadas como Turma Ouro.
           </p>
           <div className="flex flex-wrap gap-4">
-            <button 
+            <button
               onClick={handleAdd}
               className="bg-white text-slate-900 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-100 transition shadow-sm text-sm flex items-center gap-1.5 cursor-pointer"
             >
@@ -310,7 +385,7 @@ const Leitores = () => {
 
           return (
             <div key={ano} className={`rounded-3xl border overflow-hidden shadow-sm ${isDark ? 'border-white/10 bg-slate-900/30' : 'border-gray-200 bg-white'}`}>
-              <button 
+              <button
                 onClick={() => toggleSection(ano)}
                 className={`w-full px-6 py-4 flex items-center justify-between font-bold text-base cursor-pointer ${
                   isDark ? 'hover:bg-slate-900 text-white' : 'hover:bg-slate-55 text-slate-855'
@@ -367,11 +442,11 @@ const Leitores = () => {
                             {students.map(u => {
                               const isBlocked = u.status === 'BLOQUEADO';
                               return (
-                                <div 
+                                <div
                                   key={u.id}
                                   className={`rounded-2xl border p-4 flex flex-col justify-between transition-all duration-200 hover:scale-[1.01] ${
-                                    isDark 
-                                      ? 'border-white/5 bg-slate-900/40 hover:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.15)]' 
+                                    isDark
+                                      ? 'border-white/5 bg-slate-900/40 hover:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.15)]'
                                       : 'border-gray-200 bg-white hover:border-gray-300 shadow-sm'
                                   }`}
                                 >
@@ -386,8 +461,8 @@ const Leitores = () => {
                                         </p>
                                       </div>
                                       <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0 ${
-                                        isBlocked 
-                                          ? 'bg-rose-500/20 text-rose-450 border border-rose-500/20' 
+                                        isBlocked
+                                          ? 'bg-rose-500/20 text-rose-450 border border-rose-500/20'
                                           : 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/20'
                                       }`}>
                                         {u.status}
@@ -419,8 +494,8 @@ const Leitores = () => {
                                       <button
                                         onClick={() => handleEdit(u)}
                                         className={`p-1.5 rounded-xl border transition cursor-pointer ${
-                                          isDark 
-                                            ? 'border-white/10 hover:bg-white/5 text-slate-400 hover:text-white' 
+                                          isDark
+                                            ? 'border-white/10 hover:bg-white/5 text-slate-400 hover:text-white'
                                             : 'border-gray-250 hover:bg-slate-100 text-slate-655 hover:text-slate-900'
                                         }`}
                                         title="Editar Leitor"

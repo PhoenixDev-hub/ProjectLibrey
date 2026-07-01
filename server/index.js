@@ -3,21 +3,21 @@ import "dotenv/config"
 import express from "express"
 import { prisma } from "./lib/prisma.js"
 import { initConfig } from "./src/config/env.js"
+import { getCurrentUser, logoutController, refreshTokenController, updateCurrentUser } from "./src/controllers/auth.controllers.js"
 import verificarPrazos from "./src/cronjobs/verificarPrazos.js"
 import { autenticar } from "./src/middlewares/auth.middleware.js"
-import { getCurrentUser, updateCurrentUser } from "./src/controllers/auth.controllers.js"
 import { errorHandler } from "./src/middlewares/error.middleware.js"
 import { generalLimiter, loginLimiter, strictLimiter } from "./src/middlewares/rate-limit.middleware.js"
 import authRoutes from "./src/routes/auth.routes.js"
+import configuracoesRoutes from "./src/routes/configuracoes.routes.js"
+import duvidaRoutes from "./src/routes/duvida.routes.js"
+import eventoRoutes from "./src/routes/evento.routes.js"
 import exemplarRoutes from "./src/routes/exemplar.routes.js"
 import livroRoutes from "./src/routes/livro.routes.js"
 import notificacaoRoutes from "./src/routes/notificacaoRoutes.js"
 import passwordResetRoutes from "./src/routes/password-reset.routes.js"
 import reservaRoutes from "./src/routes/reservaRoutes.js"
 import usuarioRoutes from "./src/routes/usuario.routes.js"
-import duvidaRoutes from "./src/routes/duvida.routes.js"
-import configuracoesRoutes from "./src/routes/configuracoes.routes.js"
-import eventoRoutes from "./src/routes/evento.routes.js"
 import logger from "./src/utils/logger.js"
 
 const config = initConfig()
@@ -38,6 +38,8 @@ app.use(generalLimiter)
 
 app.use("/cadastro", strictLimiter, usuarioRoutes)
 app.use("/login", loginLimiter, authRoutes)
+app.post("/auth/refresh", refreshTokenController)
+app.post("/auth/logout", logoutController)
 app.get("/me", autenticar, getCurrentUser)
 app.put("/me", autenticar, updateCurrentUser)
 app.use("/usuarios", autenticar, usuarioRoutes)
