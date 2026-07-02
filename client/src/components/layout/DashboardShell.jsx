@@ -110,7 +110,7 @@ const DashboardShell = ({ children }) => {
           <div className="relative">
             {theme === 'dark' && <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-slate-950/90 to-transparent" />}
             
-            <header className={`relative border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-200 bg-white/60 backdrop-blur-md'} px-8 py-6`}>
+            <header className={`relative z-50 border-b ${theme === 'dark' ? 'border-white/10' : 'border-gray-200 bg-white/60 backdrop-blur-md'} px-8 py-6`}>
               <div className="flex items-center justify-between gap-4">
                 <div className="relative max-w-xl flex-1">
                   <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`} size={20} />
@@ -161,7 +161,7 @@ const DashboardShell = ({ children }) => {
                     {notificationsOpen && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setNotificationsOpen(false)} />
-                        <div className={`absolute right-0 mt-2 w-96 rounded-2xl border p-5 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${
+                        <div className={`absolute right-0 top-full mt-3 w-96 max-w-[calc(100vw-1.5rem)] max-h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border p-5 shadow-2xl backdrop-blur-xl z-[60] animate-in fade-in slide-in-from-top-2 duration-200 ${
                           theme === 'dark'
                             ? 'border-white/10 bg-slate-950/95 text-slate-200'
                             : 'border-gray-200 bg-white text-slate-800'
@@ -184,11 +184,14 @@ const DashboardShell = ({ children }) => {
                               Marcar todas lidas
                             </button>
                           </div>
-                          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                          <div className="space-y-3 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
                             {notifications.length === 0 ? (
                               <p className="text-sm text-slate-500 text-center py-6">Nenhuma notificação</p>
                             ) : (
-                              notifications.map(n => (
+                              [...notifications]
+                                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                                .slice(0, 5)
+                                .map(n => (
                                 <div 
                                   key={n.id} 
                                   onClick={() => !n.lida && handleMarkAsRead(n.id)}
@@ -205,6 +208,13 @@ const DashboardShell = ({ children }) => {
                               ))
                             )}
                           </div>
+                          {notifications.length > 5 && (
+                            <div className={`mt-3 pt-3 border-t text-center ${theme === 'dark' ? 'border-white/5' : 'border-gray-100'}`}>
+                              <span className="text-xs text-slate-500">
+                                Mostrando as 5 mais recentes
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}
@@ -234,7 +244,7 @@ const DashboardShell = ({ children }) => {
                     {profileOpen && (
                       <>
                         <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                        <div className={`absolute right-0 mt-2 w-84 rounded-2xl border overflow-hidden shadow-2xl backdrop-blur-xl z-50 animate-in fade-in slide-in-from-top-2 duration-200 ${
+                        <div className={`absolute right-0 top-full mt-3 w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl border overflow-hidden shadow-2xl backdrop-blur-xl z-[60] animate-in fade-in slide-in-from-top-2 duration-200 ${
                           theme === 'dark'
                             ? 'border-white/10 bg-slate-950/95 text-slate-200'
                             : 'border-gray-200 bg-white text-slate-800'
@@ -242,7 +252,7 @@ const DashboardShell = ({ children }) => {
                           <div className="h-20 bg-gradient-to-r from-emerald-500/20 to-sky-500/20 relative">
                             <div className="absolute -bottom-6 left-5">
                               <div className={`w-14 h-14 rounded-full border-2 flex items-center justify-center shadow-lg ${
-                                theme === 'dark' ? 'bg-slate-850 border-slate-950 text-white' : 'bg-white border-white text-slate-800'
+                                theme === 'dark' ? 'bg-slate-800 border-slate-950 text-white' : 'bg-white border-white text-slate-800'
                               }`}>
                                 <User size={24} />
                               </div>

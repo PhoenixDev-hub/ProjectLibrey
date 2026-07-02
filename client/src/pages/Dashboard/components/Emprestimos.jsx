@@ -72,14 +72,14 @@ const Emprestimos = () => {
     if (loan.status === 'DEVOLVIDO') {
       return {
         label: 'Devolvido',
-        colorClass: isDark ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-650',
+        colorClass: isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600',
         icon: CheckCircle2
       };
     }
     if (loan.status === 'APROVADO') {
       return {
         label: 'Aguardando Retirada',
-        colorClass: 'bg-amber-500/20 text-amber-450 border border-amber-500/20',
+        colorClass: 'bg-amber-500/20 text-amber-500 border border-amber-500/20',
         icon: Clock
       };
     }
@@ -88,14 +88,14 @@ const Emprestimos = () => {
     if (devolDate < hoje) {
       return {
         label: 'Atrasado',
-        colorClass: 'bg-rose-500/20 text-rose-450 border border-rose-500/20',
+        colorClass: 'bg-rose-500/20 text-rose-500 border border-rose-500/20',
         icon: AlertCircle
       };
     }
 
     return {
       label: 'Em Dia',
-      colorClass: 'bg-emerald-500/20 text-emerald-450 border border-emerald-500/20',
+      colorClass: 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/20',
       icon: Clock
     };
   };
@@ -126,7 +126,7 @@ const Emprestimos = () => {
     return (
       <div className="flex flex-col gap-8">
         <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
-          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-600 to-indigo-500'}
         `}>
           <div className="relative z-10 text-white max-w-xl">
             <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
@@ -149,7 +149,7 @@ const Emprestimos = () => {
     return (
       <div className="flex flex-col gap-8">
         <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
-          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-600 to-indigo-500'}
         `}>
           <div className="relative z-10 text-white max-w-xl">
             <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
@@ -172,7 +172,7 @@ const Emprestimos = () => {
     return (
       <div className="flex flex-col gap-8">
         <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
-          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+          ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-600 to-indigo-500'}
         `}>
           <div className="relative z-10 text-white max-w-xl">
             <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
@@ -194,7 +194,7 @@ const Emprestimos = () => {
   return (
     <div className="flex flex-col gap-8">
       <div className={`relative overflow-hidden rounded-3xl p-8 shadow-sm flex items-center justify-between
-        ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-650 to-indigo-500'}
+        ${isDark ? 'bg-gradient-to-r from-sky-900 to-sky-700' : 'bg-gradient-to-r from-indigo-600 to-indigo-500'}
       `}>
         <div className="relative z-10 text-white max-w-xl">
           <h1 className="text-3xl font-extrabold mb-2">Empréstimos</h1>
@@ -215,8 +215,8 @@ const Emprestimos = () => {
           </div>
         </div>
 
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-10 w-40 h-40 bg-black opacity-10 rounded-full blur-2xl translate-y-1/2"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-10 w-40 h-40 bg-black/10 rounded-full blur-2xl translate-y-1/2"></div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
@@ -261,7 +261,7 @@ const Emprestimos = () => {
         </div>
 
         <div className={`rounded-3xl border p-5 shadow-sm flex items-center gap-4 transition hover:scale-[1.02] ${isDark ? 'border-white/10 bg-slate-900' : 'border-gray-200 bg-white'}`}>
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-slate-550 bg-slate-550/10">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-slate-500 bg-slate-500/10">
             <CheckCircle2 size={24} strokeWidth={2.5} />
           </div>
           <div>
@@ -282,7 +282,7 @@ const Emprestimos = () => {
             className={`w-full rounded-2xl border py-2.5 pl-11 pr-4 text-sm outline-none transition focus:ring-2 ${
               isDark
                 ? 'border-white/10 bg-slate-950 text-slate-100 focus:border-sky-400 focus:ring-sky-500/20'
-                : 'border-gray-350 bg-white text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/20'
+                : 'border-gray-300 bg-white text-slate-900 focus:border-indigo-500 focus:ring-indigo-500/20'
             }`}
           />
         </div>
@@ -303,7 +303,7 @@ const Emprestimos = () => {
                 onClick={() => setStatusFilter(status)}
                 className={`px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? (isDark ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-900 font-semibold shadow-sm')
+                ? (isDark ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-900 font-semibold shadow-sm')
                     : (isDark ? 'text-slate-400 hover:bg-slate-900/60' : 'text-slate-600 hover:bg-gray-100')
                 }`}
               >
@@ -330,7 +330,7 @@ const Emprestimos = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${isDark ? 'border-white/5 bg-slate-950/20 text-slate-450' : 'border-gray-150 bg-gray-50 text-slate-500'}`}>
+                <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${isDark ? 'border-white/5 bg-slate-950/20 text-slate-400' : 'border-gray-200 bg-gray-50 text-slate-500'}`}>
                   <th className="py-4 px-6">Livro</th>
                   {ehBibliotecaria && <th className="py-4 px-6">Leitor</th>}
                   <th className="py-4 px-6">Retirada</th>
@@ -339,7 +339,7 @@ const Emprestimos = () => {
                   {ehBibliotecaria && <th className="py-4 px-6 text-right">Ações</th>}
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-150'}`}>
+              <tbody className={`divide-y ${isDark ? 'divide-white/5' : 'divide-gray-200'}`}>
                 {filteredLoans.map((loan) => {
                   const statusInfo = getLoanStatusInfo(loan);
                   const StatusIcon = statusInfo.icon;
@@ -347,12 +347,12 @@ const Emprestimos = () => {
                     <tr key={loan.id} className="text-sm hover:bg-slate-500/5 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3.5 max-w-[280px]">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${isDark ? 'bg-slate-900 border-white/5 text-sky-400' : 'bg-slate-100 border-gray-200 text-indigo-650'}`}>
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${isDark ? 'bg-slate-900 border-white/5 text-sky-400' : 'bg-slate-100 border-gray-200 text-indigo-600'}`}>
                             <BookOpen size={16} />
                           </div>
                           <div className="overflow-hidden">
                             <p className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{loan.exemplar?.livro?.titulo || 'Livro Desconhecido'}</p>
-                            <p className={`text-xs ${isDark ? 'text-slate-450' : 'text-slate-500'} truncate`}>{loan.exemplar?.livro?.autor || 'Autor'}</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>{loan.exemplar?.livro?.autor || 'Autor'}</p>
                           </div>
                         </div>
                       </td>
@@ -360,14 +360,14 @@ const Emprestimos = () => {
                       {ehBibliotecaria && (
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3.5">
-                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${isDark ? 'bg-slate-900 border-white/5 text-violet-400' : 'bg-slate-100 border-gray-200 text-violet-650'}`}>
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${isDark ? 'bg-slate-900 border-white/5 text-violet-400' : 'bg-slate-100 border-gray-200 text-violet-600'}`}>
                               <User size={16} />
                             </div>
                             <div className="overflow-hidden">
                               <p className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
                                 {loan.usuario?.nome} {loan.usuario?.sobrenome}
                               </p>
-                              <p className={`text-xs ${isDark ? 'text-slate-450' : 'text-slate-500'} truncate`}>
+                              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'} truncate`}>
                                 {loan.usuario?.anoSala || 'Sem Sala'} • {loan.usuario?.email}
                               </p>
                             </div>
@@ -375,10 +375,10 @@ const Emprestimos = () => {
                         </td>
                       )}
 
-                      <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-350' : 'text-slate-600'}`}>
+                      <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         {formatDateOrDeadline(loan, 'retirada')}
                       </td>
-                      <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-350' : 'text-slate-600'}`}>
+                      <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         {formatDateOrDeadline(loan, 'devolucao')}
                       </td>
 
@@ -398,7 +398,7 @@ const Emprestimos = () => {
                                   handleRegistrarRetirada(loan.id);
                                 }
                               }}
-                              className="text-xs font-bold bg-emerald-500 hover:bg-emerald-450 text-white px-3 py-1.5 rounded-xl transition cursor-pointer"
+                              className="text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl transition cursor-pointer"
                             >
                               Entregar
                             </button>
