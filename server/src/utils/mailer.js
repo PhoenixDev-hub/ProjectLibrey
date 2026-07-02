@@ -86,4 +86,39 @@ export async function sendPasswordResetEmail(to, token, expiresAt) {
   }
 }
 
-export default { sendPasswordResetEmail }
+export async function sendVerificationEmail(to, code) {
+  const t = await initTransporter()
+  if (!t) return { info: null, previewUrl: null }
+
+  const subject = 'Código de Verificação - ProjectLibrary'
+  const text = `Seu código de verificação é: ${code}`
+  const html = `<div style="font-family: Arial, sans-serif; text-align: center; max-width: 500px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; padding: 20px;">
+      <h2 style="color: #10B981;">Bem-vindo(a)!</h2>
+      <p>Use o código abaixo para verificar seu e-mail:</p>
+      <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333; margin: 20px 0;">${code}</div>
+      <p style="color: #666; font-size: 14px;">Este código expira em 15 minutos.</p>
+    </div>`
+
+  try {
+    const info = await t.sendMail({
+      from: EMAIL_FROM,
+      to,
+      subject,
+      text,
+      html,
+    })
+    let previewUrl = null
+    if (usingEthereal) {
+      previewUrl = nodemailer.getTestMessageUrl(info)
+      logger.info('Email de verificação enviado (Ethereal preview)', { to, messageId: info.messageId, previewUrl })
+    } else {
+      logger.info('Email de verificação enviado', { to, messageId: info.messageId })
+    }
+    return { info, previewUrl }
+  } catch (error) {
+    logger.error('Erro ao enviar email de verificação', { to, error: error.message })
+    throw error
+  }
+}
+
+export default { sendPasswordResetEmail, sendVerificationEmail }

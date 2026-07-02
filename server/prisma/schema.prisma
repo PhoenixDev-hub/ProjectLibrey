@@ -18,6 +18,9 @@ model Usuario {
   anoInicioEnsinoMedio Int          @map("ano_inicio_ensino_medio")
   telefone             String?
   status               String       @default("ATIVO")
+  emailVerificado      Boolean      @default(false) @map("email_verificado")
+  codigoVerificacao    String?      @map("codigo_verificacao")
+  codigoVerificacaoExp DateTime?    @map("codigo_verificacao_exp")
   dataCadastro         DateTime     @default(now()) @map("data_cadastro")
   refreshTokens        RefreshToken[]
   passwordResets       PasswordReset[]

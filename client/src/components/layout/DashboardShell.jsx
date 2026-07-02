@@ -184,7 +184,7 @@ const DashboardShell = ({ children }) => {
                               Marcar todas lidas
                             </button>
                           </div>
-                          <div className="space-y-3 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1">
+                          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                             {notifications.length === 0 ? (
                               <p className="text-sm text-slate-500 text-center py-6">Nenhuma notificação</p>
                             ) : (

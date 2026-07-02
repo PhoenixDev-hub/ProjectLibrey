@@ -46,6 +46,10 @@ export function AuthProvider({ children }) {
   async function login({ email, password }) {
     const data = await loginRequest({ email, password });
 
+    if (data.requireVerification) {
+      return data;
+    }
+
     localStorage.setItem("token", data.token);
     localStorage.setItem("refreshToken", data.refreshToken);
     api.defaults.headers.Authorization = `Bearer ${data.token}`;
@@ -60,6 +64,10 @@ export function AuthProvider({ children }) {
 
   async function register(formData) {
     const data = await registerRequest(formData);
+
+    if (data.requireVerification) {
+      return data;
+    }
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("refreshToken", data.refreshToken);

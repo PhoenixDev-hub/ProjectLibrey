@@ -3,7 +3,7 @@ import "dotenv/config"
 import express from "express"
 import { prisma } from "./lib/prisma.js"
 import { initConfig } from "./src/config/env.js"
-import { getCurrentUser, logoutController, refreshTokenController, updateCurrentUser } from "./src/controllers/auth.controllers.js"
+import { verifyEmailController, resendVerificationController, getCurrentUser, logoutController, refreshTokenController, updateCurrentUser } from "./src/controllers/auth.controllers.js"
 import verificarPrazos from "./src/cronjobs/verificarPrazos.js"
 import { autenticar } from "./src/middlewares/auth.middleware.js"
 import { errorHandler } from "./src/middlewares/error.middleware.js"
@@ -38,6 +38,8 @@ app.use(generalLimiter)
 
 app.use("/cadastro", strictLimiter, usuarioRoutes)
 app.use("/login", loginLimiter, authRoutes)
+app.post("/verificar-email", strictLimiter, verifyEmailController)
+app.post("/reenviar-verificacao", strictLimiter, resendVerificationController)
 app.post("/auth/refresh", refreshTokenController)
 app.post("/auth/logout", logoutController)
 app.get("/me", autenticar, getCurrentUser)

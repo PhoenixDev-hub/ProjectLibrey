@@ -55,6 +55,13 @@ export async function loginService(email, senha) {
     throw new Error("Credenciais inválidas")
   }
 
+  if (usuario.emailVerificado === false) {
+    return {
+      requireVerification: true,
+      email: usuario.email
+    }
+  }
+
   const token = createAccessToken(usuario)
   const refreshToken = await createRefreshToken(usuario.id)
 
@@ -143,4 +150,72 @@ export async function getCurrentUserService(usuarioId) {
   }
 
   return usuario
+}
+
+export async function verifyEmailService(email, code) {
+  const usuario = await prisma.usuario.findUnique({ where: { email } })
+  if (!usuario) {
+    throw new Error("Usuário não encontrado")
+  }
+  if (usuario.emailVerificado) {
+    return { message: "E-mail já está verificado" }
+  }
+  if (usuario.codigoVerificacao !== code) {
+    throw new Error("Código de verificação inválido")
+  }
+  if (usuario.codigoVerificacaoExp < new Date()) {
+    throw new Error("Código de verificação expirado")
+  }
+
+  await prisma.usuario.update({
+    where: { email },
+    data: {
+      emailVerificado: true,
+      codigoVerificacao: null,
+      codigoVerificacaoExp: null
+    }
+  })
+
+  // We could auto-login them here and return tokens, but let's just return success so the frontend redirects to login or logs them in.
+  // Actually, returning a token here makes the UX smoother!
+  const token = createAccessToken(usuario)
+  const refreshToken = await createRefreshToken(usuario.id)
+
+  return {
+    message: "E-mail verificado com sucesso",
+    token,
+    refreshToken,
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      tipoUsuario: usuario.tipoUsuario,
+    }
+  }
+}
+
+export async function resendVerificationService(email) {
+  const usuario = await prisma.usuario.findUnique({ where: { email } })
+  if (!usuario) {
+    throw new Error("Usuário não encontrado")
+  }
+  if (usuario.emailVerificado) {
+    throw new Error("E-mail já está verificado")
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+  await prisma.usuario.update({
+    where: { email },
+    data: {
+      codigoVerificacao: code,
+      codigoVerificacaoExp: expiresAt
+    }
+  })
+
+  const { sendVerificationEmail } = await import("../utils/mailer.js");
+  await sendVerificationEmail(usuario.email, code);
+
+  return { message: "Código reenviado com sucesso" }
 }

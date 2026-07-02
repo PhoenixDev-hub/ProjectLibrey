@@ -4,12 +4,13 @@ import logger from "../utils/logger.js";
 
 export async function createUsuarioController(req, res, next) {
   try {
-    const schema = req.baseUrl === "/usuarios" ? createUsuarioAdminSchema : createUsuarioSchema;
+    const isAdmin = req.baseUrl === "/usuarios";
+    const schema = isAdmin ? createUsuarioAdminSchema : createUsuarioSchema;
     const data = schema.parse({
       tipoUsuario: "ALUNO",
       ...req.body,
     });
-    const result = await criarUsuario(data);
+    const result = await criarUsuario(data, isAdmin);
 
     return res.status(201).json(result);
   } catch (error) {

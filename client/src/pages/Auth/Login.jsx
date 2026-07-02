@@ -71,8 +71,12 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
-      navigate("/dashboard");
+      const result = await login({ email, password });
+      if (result.requireVerification) {
+        navigate("/cadastro", { state: { verifyEmail: email } });
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       if (err.response?.status === 429) {
         setError("Muitas tentativas. Tente novamente em 15 minutos");

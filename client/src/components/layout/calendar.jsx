@@ -42,36 +42,63 @@ export default function Calendar() {
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
   const currentDay = today.getDate();
 
-  // 1. Devoluções/Entregas dinâmicas a partir das reservas (status RETIRADO)
+  // 1. Devoluções/Entregas dinâmicas a partir das reservas (status RETIRADO e APROVADO)
   const safeReservations = Array.isArray(reservations) ? reservations : [];
   const activeLoans = ehBibliotecaria 
-    ? safeReservations.filter(r => r.status === 'RETIRADO')
-    : safeReservations.filter(r => r.status === 'RETIRADO' && r.usuarioId === user?.id);
+    ? safeReservations.filter(r => r.status === 'RETIRADO' || r.status === 'APROVADO')
+    : safeReservations.filter(r => (r.status === 'RETIRADO' || r.status === 'APROVADO') && r.usuarioId === user?.id);
 
   const loanEvents = activeLoans
-    .filter(r => r.prazoDevol)
+    .filter(r => r.prazoDevol || r.aprovadoEm)
     .map(r => {
-      const dateObj = new Date(r.prazoDevol);
-      const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
-      
-      return {
-        id: `loan-${r.id}`,
-        date: dateStr,
-        title: ehBibliotecaria
-          ? `Entrega: ${r.exemplar?.livro?.titulo || 'Livro'} (${r.usuario?.nome || 'Leitor'})`
-          : `Entregar: ${r.exemplar?.livro?.titulo || 'Livro'}`,
-        type: 'danger'
-      };
-    });
+      if (r.status === 'RETIRADO' && r.prazoDevol) {
+        const dateObj = new Date(r.prazoDevol);
+        const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+        
+        return {
+          id: `loan-${r.id}`,
+          date: dateStr,
+          title: ehBibliotecaria
+            ? `Entrega: ${r.exemplar?.livro?.titulo || 'Livro'} (${r.usuario?.nome || 'Leitor'})`
+            : `Entregar: ${r.exemplar?.livro?.titulo || 'Livro'}`,
+          type: 'danger'
+        };
+      } else if (r.status === 'APROVADO' && r.aprovadoEm) {
+        const deadline = new Date(r.aprovadoEm);
+        deadline.setDate(deadline.getDate() + 3);
+        const dateStr = `${deadline.getFullYear()}-${String(deadline.getMonth() + 1).padStart(2, '0')}-${String(deadline.getDate()).padStart(2, '0')}`;
+        
+        return {
+          id: `loan-${r.id}`,
+          date: dateStr,
+          title: ehBibliotecaria
+            ? `Retirada: ${r.exemplar?.livro?.titulo || 'Livro'} (${r.usuario?.nome || 'Leitor'})`
+            : `Retirar: ${r.exemplar?.livro?.titulo || 'Livro'}`,
+          type: 'warning'
+        };
+      }
+      return null;
+    }).filter(Boolean);
 
-  // 2. Filtrar os eventos customizados da biblioteca (remover empréstimos estáticos)
+  // 2. Filtrar os eventos customizados da biblioteca (remover empréstimos estáticos e eventos passados)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
   const customEvents = calendarEvents.filter(e => {
     const titleLower = e.title.toLowerCase();
     const isLoanEvent = titleLower.startsWith('devolver:') || 
                         titleLower.startsWith('retirar:') || 
                         titleLower.startsWith('entregar:') || 
                         titleLower.startsWith('entrega:');
-    return !isLoanEvent;
+    if (isLoanEvent) return false;
+
+    if (e.date < todayStr) {
+      if (titleLower.includes('retirada') || titleLower.includes('devoluç') || titleLower.includes('devoluc') || titleLower.includes('entreg')) {
+        return true;
+      }
+      return false;
+    }
+
+    return true;
   });
 
   // 3. Unir eventos

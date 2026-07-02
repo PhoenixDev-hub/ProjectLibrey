@@ -2,28 +2,54 @@ import bcrypt from "bcrypt";
 import { prisma } from "../../lib/prisma.js";
 import { createAccessToken, createRefreshToken } from "./auth.service.js";
 
-export async function criarUsuario(data) {
+export async function criarUsuario(data, isAdmin = false) {
   const senhaHash = await bcrypt.hash(data.senha, 10);
+
+  if (isAdmin) {
+    const usuario = await prisma.usuario.create({
+      data: {
+        ...data,
+        senha: senhaHash,
+        emailVerificado: true,
+      },
+    });
+
+    const token = createAccessToken(usuario);
+    const refreshToken = await createRefreshToken(usuario.id);
+
+    return {
+      token,
+      refreshToken,
+      usuario: {
+        id: usuario.id,
+        nome: usuario.nome,
+        email: usuario.email,
+        tipoUsuario: usuario.tipoUsuario,
+      },
+    };
+  }
+
+  // Generate 6-digit code
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   const usuario = await prisma.usuario.create({
     data: {
       ...data,
       senha: senhaHash,
+      emailVerificado: false,
+      codigoVerificacao: code,
+      codigoVerificacaoExp: expiresAt,
     },
   });
 
-  const token = createAccessToken(usuario);
-  const refreshToken = await createRefreshToken(usuario.id);
+  // Dynamically import to avoid circular dependencies if any
+  const { sendVerificationEmail } = await import("../utils/mailer.js");
+  await sendVerificationEmail(usuario.email, code);
 
   return {
-    token,
-    refreshToken,
-    usuario: {
-      id: usuario.id,
-      nome: usuario.nome,
-      email: usuario.email,
-      tipoUsuario: usuario.tipoUsuario,
-    },
+    requireVerification: true,
+    email: usuario.email,
   };
 }
 

@@ -1,5 +1,5 @@
 import { loginSchema } from "../schemas/auth.schemas.js";
-import { getCurrentUserService, loginService, logoutService, refreshTokenService } from "../service/auth.service.js";
+import { getCurrentUserService, loginService, logoutService, refreshTokenService, verifyEmailService, resendVerificationService } from "../service/auth.service.js";
 import { atualizarUsuario } from "../service/usuario.service.js";
 import logger from "../utils/logger.js";
 
@@ -70,6 +70,26 @@ export async function updateCurrentUser(req, res, next) {
     return res.json(usuario);
   } catch (error) {
     logger.error('Erro ao atualizar dados do usuário', { usuarioId: req.usuario.id, error: error.message });
+    next(error);
+  }
+}
+
+export async function verifyEmailController(req, res, next) {
+  try {
+    const { email, code } = req.body;
+    const result = await verifyEmailService(email, code);
+    return res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendVerificationController(req, res, next) {
+  try {
+    const { email } = req.body;
+    const result = await resendVerificationService(email);
+    return res.json(result);
+  } catch (error) {
     next(error);
   }
 }

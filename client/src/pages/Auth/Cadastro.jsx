@@ -9,11 +9,13 @@ import {
   User,
   UserPlus,
   Users,
+  CheckCircle,
 } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { TipoUsuario } from "../../constants/enums";
 import { useAuth } from "../../hooks/useAuth";
+import { verifyEmailRequest, resendVerificationRequest } from "../../services/auth.service.js";
 
 const anosSalas = [
   "1A",
@@ -36,21 +38,31 @@ const fieldClass =
 export default function Cadastro() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState({
     nome: "",
     sobrenome: "",
-    email: "",
+    email: location.state?.verifyEmail || "",
     senha: "",
     confirmarSenha: "",
-    anoInicioEnsinoMedio: "",
+    anoInicioEnsinoMedio: new Date().getFullYear(),
     telefone: "",
     tipoUsuario: TipoUsuario.ALUNO,
     anoSala: "1A",
   });
 
+  const [isVerifying, setIsVerifying] = useState(!!location.state?.verifyEmail);
+  const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    if (location.state?.verifyEmail) {
+      setSuccessMessage("Por favor, verifique seu e-mail antes de fazer login.");
+    }
+  }, [location.state]);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -70,13 +82,14 @@ export default function Cadastro() {
       if (messages) return messages;
     }
 
-    return serverError?.error || "Erro ao cadastrar";
+    return serverError?.error || "Erro ao processar requisição";
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
 
     if (form.senha !== form.confirmarSenha) {
       setErrorMessage("As senhas não coincidem");
@@ -106,13 +119,120 @@ export default function Cadastro() {
           form.tipoUsuario === TipoUsuario.ALUNO ? form.anoSala : undefined,
       };
 
-      await register(requestBody);
-      navigate("/dashboard");
+      const result = await register(requestBody);
+      if (result.requireVerification) {
+        setIsVerifying(true);
+        setSuccessMessage("Um código de verificação foi enviado para seu e-mail.");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error) {
       setErrorMessage(getServerMessage(error));
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleVerify(e) {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      await verifyEmailRequest({ email: form.email, code: verificationCode });
+      navigate("/"); // Redireciona para o login após verificar
+    } catch (error) {
+      setErrorMessage(getServerMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleResendCode() {
+    setIsLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+    try {
+      await resendVerificationRequest({ email: form.email });
+      setSuccessMessage("Código reenviado com sucesso! Verifique seu e-mail.");
+    } catch (error) {
+      setErrorMessage(getServerMessage(error));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  if (isVerifying) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-900 px-4 py-8">
+        <main className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-6 shadow-2xl shadow-slate-950/30 sm:p-8">
+          <div className="mb-7 text-center">
+            <Mail className="mx-auto h-12 w-12 text-emerald-600 mb-4" />
+            <h2 className="text-2xl font-semibold text-slate-950">
+              Verifique seu e-mail
+            </h2>
+            <p className="mt-2 text-sm text-slate-500">
+              Enviamos um código de 6 dígitos para <strong>{form.email}</strong>.
+            </p>
+          </div>
+
+          {errorMessage && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+          {successMessage && (
+            <div className="mb-4 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+              <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleVerify} className="space-y-4">
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                maxLength={6}
+                placeholder="Código de 6 dígitos"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                required
+                className="w-full rounded-lg border border-slate-300 bg-white py-3 pl-10 pr-4 text-center text-xl tracking-[0.5em] text-slate-950 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </div>
+            
+            <button
+              type="submit"
+              disabled={isLoading || verificationCode.length !== 6}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Verificar Conta"
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-slate-500">
+              Não recebeu o código?{" "}
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={isLoading}
+                className="font-medium text-emerald-600 hover:text-emerald-500"
+              >
+                Reenviar
+              </button>
+            </p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -258,7 +378,22 @@ export default function Cadastro() {
                   <select
                     name="anoSala"
                     value={form.anoSala}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const gradeMatch = val.match(/\d/);
+                      let computedYear = form.anoInicioEnsinoMedio;
+                      if (gradeMatch) {
+                        const grade = Number(gradeMatch[0]);
+                        const currentYear = new Date().getFullYear();
+                        computedYear = currentYear - grade + 1;
+                      }
+                      setForm({
+                        ...form,
+                        anoSala: val,
+                        anoInicioEnsinoMedio: computedYear
+                      });
+                      if (errorMessage) setErrorMessage("");
+                    }}
                     required
                     className={fieldClass}
                   >
@@ -280,7 +415,22 @@ export default function Cadastro() {
                 <select
                   name="tipoUsuario"
                   value={form.tipoUsuario}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newType = e.target.value;
+                    const updates = { tipoUsuario: newType };
+                    
+                    if (newType === TipoUsuario.ALUNO) {
+                      updates.anoSala = "1A";
+                      updates.anoInicioEnsinoMedio = new Date().getFullYear();
+                    } else if (newType === TipoUsuario.PROFESSOR) {
+                      updates.anoSala = "Sala dos Professores";
+                    } else {
+                      updates.anoSala = "";
+                    }
+                    
+                    setForm({ ...form, ...updates });
+                    if (errorMessage) setErrorMessage("");
+                  }}
                   className={fieldClass}
                 >
                   <option value={TipoUsuario.ALUNO}>Aluno</option>
