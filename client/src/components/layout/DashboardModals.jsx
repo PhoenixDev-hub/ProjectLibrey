@@ -260,6 +260,7 @@ export const ReservaModal = () => {
   const [step, setStep] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [tipoReserva, setTipoReserva] = useState('LEITURA_PESSOAL');
   const [userSearch, setUserSearch] = useState('');
   const [bookSearch, setBookSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -304,6 +305,7 @@ export const ReservaModal = () => {
     setShowReservaModal(false);
     setSelectedUser(null);
     setSelectedBook(null);
+    setTipoReserva('LEITURA_PESSOAL');
     setUserSearch('');
     setBookSearch('');
     setErrorMsg('');
@@ -323,7 +325,7 @@ export const ReservaModal = () => {
       setSubmitting(true);
       setErrorMsg('');
       const targetUserId = ehBibliotecaria ? selectedUser.id : undefined;
-      await handleReservarLivro(selectedBook.id, targetUserId);
+      await handleReservarLivro(selectedBook.id, targetUserId, tipoReserva);
       handleClose();
     } catch (err) {
       setErrorMsg(err.response?.data?.erro || err.response?.data?.error || 'Erro ao realizar reserva.');
@@ -545,6 +547,41 @@ export const ReservaModal = () => {
                   <p className={isDark ? 'text-white' : 'text-slate-900'}>{selectedBook.titulo}</p>
                   <p className="text-[10px] text-slate-400 mt-0.5">Autor: {selectedBook.autor} • Área: {getCDDAreaName(selectedBook.area)}</p>
                 </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Tipo de reserva:
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTipoReserva('LEITURA_PESSOAL')}
+                  className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all gap-1.5
+                    ${tipoReserva === 'LEITURA_PESSOAL' 
+                      ? (isDark ? 'bg-sky-500/10 border-sky-500 text-sky-400' : 'bg-sky-50 border-sky-500 text-sky-600') 
+                      : (isDark ? 'bg-slate-950/20 border-white/5 text-slate-400 hover:bg-slate-950/40' : 'bg-white border-gray-200 text-slate-650 hover:bg-gray-50')
+                    }
+                  `}
+                >
+                  <span className="font-bold text-xs">Leitura Pessoal</span>
+                  <span className="text-[9px] opacity-75">Estudo e lazer</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setTipoReserva('ANALISE_LITERARIA')}
+                  className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all gap-1.5
+                    ${tipoReserva === 'ANALISE_LITERARIA' 
+                      ? (isDark ? 'bg-sky-500/10 border-sky-500 text-sky-400' : 'bg-sky-50 border-sky-500 text-sky-600') 
+                      : (isDark ? 'bg-slate-950/20 border-white/5 text-slate-400 hover:bg-slate-950/40' : 'bg-white border-gray-200 text-slate-655 hover:bg-gray-50')
+                    }
+                  `}
+                >
+                  <span className="font-bold text-xs">Análise Literária</span>
+                  <span className="text-[9px] opacity-75">Indicada pelo professor</span>
+                </button>
               </div>
             </div>
 

@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Home as HomeIcon, BookOpen, ShoppingCart, Calendar, 
-  HelpCircle, Users, Settings, LogOut, Sun, Moon, Bell, Search, ChevronDown, User
+  HelpCircle, Users, Settings, LogOut, Sun, Moon, Bell, Search, ChevronDown, User,
+  GraduationCap
 } from 'lucide-react';
 import { useDashboard } from '../../contexts/DashboardContext';
 
@@ -28,9 +29,10 @@ const DashboardShell = ({ children }) => {
   const allMenuItems = [
     { id: 'inicio', label: 'Início', icon: HomeIcon },
     { id: 'catalogo', label: 'Catálogo', icon: BookOpen },
-    { id: 'emprestimos', label: 'Empréstimos', icon: ShoppingCart },
-    { id: 'reservas', label: 'Reservas', icon: Calendar },
-    { id: 'ajuda', label: 'Central de ajuda', icon: HelpCircle },
+    { id: 'emprestimos', label: 'Empréstimos', icon: ShoppingCart, roles: ['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR'] },
+    { id: 'reservas', label: 'Reservas', icon: Calendar, roles: ['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR'] },
+    { id: 'analise-literaria', label: 'Análise Literária', icon: GraduationCap, roles: ['PROFESSOR', 'BIBLIOTECARIA', 'ADMINISTRADOR'] },
+    { id: 'ajuda', label: 'Central de ajuda', icon: HelpCircle, roles: ['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR'] },
     { id: 'leitores', label: 'Leitores', icon: Users, roles: ['BIBLIOTECARIA', 'ADMINISTRADOR'] },
     { id: 'configuracoes', label: 'Configurações', icon: Settings, roles: ['BIBLIOTECARIA', 'ADMINISTRADOR'] },
   ];

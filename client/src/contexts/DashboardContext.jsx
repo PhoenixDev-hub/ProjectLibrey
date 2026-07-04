@@ -183,9 +183,9 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [successMsg, errorMsg]);
 
-  const handleReservarLivro = async (livroId, usuarioId) => {
+  const handleReservarLivro = async (livroId, usuarioId, tipoReserva) => {
     try {
-      await api.post('/reservas', { livroId, usuarioId });
+      await api.post('/reservas', { livroId, usuarioId, tipoReserva });
       setSuccessMsg('Reserva solicitada com sucesso!');
       await fetchData();
     } catch (err) {

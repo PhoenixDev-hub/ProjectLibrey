@@ -72,7 +72,11 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
   );
 };
 
-const BookDetailsModal = ({ selectedBookDetails, onClose, isDark, ehAluno, favorites, toggleFavorite, handleReservarLivro, getCDDAreaName }) => {
+const BookDetailsModal = ({ 
+  selectedBookDetails, onClose, isDark, ehAluno, ehBibliotecaria, 
+  favorites, toggleFavorite, handleReservarLivro, getCDDAreaName,
+  setEditingBook, setBookForm, setShowBookModal, handleDeletarLivro
+}) => {
   if (!selectedBookDetails) return null;
   const b = selectedBookDetails;
 
@@ -158,7 +162,6 @@ const BookDetailsModal = ({ selectedBookDetails, onClose, isDark, ehAluno, favor
                 </div>
               )}
             </div>
-
             <div className="flex gap-2.5 pt-4 border-t border-slate-750/20 mt-4">
               <button
                 type="button"
@@ -182,6 +185,42 @@ const BookDetailsModal = ({ selectedBookDetails, onClose, isDark, ehAluno, favor
                   Reservar Livro
                 </button>
               )}
+              {ehBibliotecaria && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingBook(b);
+                      setBookForm({
+                        titulo: b.titulo || '',
+                        autor: b.autor || '',
+                        editora: b.editora || '',
+                        anoPublicacao: b.anoPublicacao || '',
+                        isbn: b.isbn || '',
+                        area: b.area || '',
+                        sinopse: b.sinopse || ''
+                      });
+                      setShowBookModal(true);
+                      onClose();
+                    }}
+                    className={`flex-1 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1 border
+                      ${isDark ? 'border-sky-500/30 text-sky-400 hover:bg-sky-500/10' : 'border-blue-300 text-blue-600 hover:bg-blue-50'}`}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDeletarLivro(b.id);
+                      onClose();
+                    }}
+                    className={`flex-1 py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1 border
+                      ${isDark ? 'border-rose-500/30 text-rose-450 hover:bg-rose-500/10' : 'border-red-300 text-red-655 hover:bg-red-50'}`}
+                  >
+                    Excluir
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -197,6 +236,7 @@ const Catalogo = () => {
     books,
     reservations,
     handleReservarLivro,
+    handleDeletarLivro,
     searchQuery,
     selectedCategory,
     setSelectedCategory,
@@ -211,6 +251,7 @@ const Catalogo = () => {
 
   const isDark = theme === 'dark';
   const ehAluno = user?.tipoUsuario === 'ALUNO';
+  const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
 
   const [activeView, setActiveView] = useState('todos');
   const [selectedBookDetails, setSelectedBookDetails] = useState(null);
@@ -513,7 +554,7 @@ const Catalogo = () => {
               : 'Gerencie o acervo de obras da escola, cadastre novos exemplares, atualize informações e controle as categorias do sistema.'}
           </p>
 
-          {ehAluno ? (
+          {ehAluno && (
             <div className="flex gap-1.5 p-1 rounded-xl max-w-xs bg-black/25 border border-white/10">
               <button
                 onClick={() => setActiveView('todos')}
@@ -530,7 +571,8 @@ const Catalogo = () => {
                 Meus Favoritos
               </button>
             </div>
-          ) : (
+          )}
+          {ehBibliotecaria && (
             <button
               onClick={() => {
                 setBookForm({
@@ -703,6 +745,34 @@ const Catalogo = () => {
                             >
                               Reservar
                             </button>
+                          )}
+                          {ehBibliotecaria && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingBook(b);
+                                  setBookForm({
+                                    titulo: b.titulo || '',
+                                    autor: b.autor || '',
+                                    editora: b.editora || '',
+                                    anoPublicacao: b.anoPublicacao || '',
+                                    isbn: b.isbn || '',
+                                    area: b.area || '',
+                                    sinopse: b.sinopse || ''
+                                  });
+                                  setShowBookModal(true);
+                                }}
+                                className="text-xs font-bold text-sky-500 hover:text-sky-400 transition"
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleDeletarLivro(b.id)}
+                                className="text-xs font-bold text-rose-500 hover:text-rose-400 transition"
+                              >
+                                Excluir
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -976,10 +1046,15 @@ const Catalogo = () => {
         onClose={() => setSelectedBookDetails(null)}
         isDark={isDark}
         ehAluno={ehAluno}
+        ehBibliotecaria={ehBibliotecaria}
         favorites={favorites}
         toggleFavorite={toggleFavorite}
         handleReservarLivro={handleReservarLivro}
         getCDDAreaName={getCDDAreaName}
+        setEditingBook={setEditingBook}
+        setBookForm={setBookForm}
+        setShowBookModal={setShowBookModal}
+        handleDeletarLivro={handleDeletarLivro}
       />
     </div>
   );

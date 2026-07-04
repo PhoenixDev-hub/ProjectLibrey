@@ -2,24 +2,22 @@
 import express from 'express'
 import { prisma } from '../../lib/prisma.js'
 import { autenticar } from '../middlewares/auth.middleware.js'
-import { soBibliotecaria } from '../middlewares/role.middleware.js'
+import { roleMiddleware, soBibliotecaria } from '../middlewares/role.middleware.js'
 import { atualizarStatusReserva, criarReservas, registrarDevolucao, registrarRetirada } from '../service/reservaService.js'
 const router = express.Router()
 
-
-router.post('/', autenticar, async (req, res, next) => {
+router.post('/', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), async (req, res, next) => {
   try {
-    const { livroId, usuarioId } = req.body
+    const { livroId, usuarioId, tipoReserva } = req.body
     const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(req.usuario.tipoUsuario)
     const targetUsuarioId = (ehBibliotecaria && usuarioId) ? Number(usuarioId) : req.usuario.id
 
-    const reserva = await criarReservas(targetUsuarioId, livroId)
+    const reserva = await criarReservas(targetUsuarioId, livroId, tipoReserva)
     res.status(201).json({ mensagem: 'Reserva solicitada com sucesso.', reserva })
   } catch (err) {
     next(err)
   }
 })
-
 
 router.patch('/:id/status', autenticar, soBibliotecaria, async (req, res, next) => {
   try {
@@ -31,19 +29,68 @@ router.patch('/:id/status', autenticar, soBibliotecaria, async (req, res, next) 
   }
 })
 
-router.patch('/:id/retirar', autenticar, soBibliotecaria, async (req, res, next) => {
+const handleRetirada = async (req, res, next) => {
   try {
     await registrarRetirada(req.params.id)
     res.json({ mensagem: 'Retirada registrada. Prazo de devolução: 30 dias.' })
   } catch (err) {
     next(err)
   }
-})
+}
+
+router.patch('/:id/retirar', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), handleRetirada)
+router.put('/:id/retirar', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), handleRetirada)
 
 router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res, next) => {
   try {
     await registrarDevolucao(req.params.id)
     res.json({ mensagem: 'Devolução registrada com sucesso.' })
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/analise-literaria', autenticar, roleMiddleware(['PROFESSOR', 'BIBLIOTECARIA', 'ADMINISTRADOR']), async (req, res, next) => {
+  try {
+    const reservas = await prisma.reserva.findMany({
+      where: {
+        tipoReserva: 'ANALISE_LITERARIA'
+      },
+      include: {
+        usuario: {
+          select: {
+            id: true,
+            nome: true,
+            sobrenome: true,
+            email: true,
+            anoSala: true
+          }
+        },
+        exemplar: {
+          include: {
+            livro: true
+          }
+        }
+      }
+    })
+
+    reservas.sort((a, b) => {
+      const statusA = a.status
+      const statusB = b.status
+      
+      const scoreA = statusA === 'RETIRADO' ? 1 : (statusA === 'DEVOLVIDO' ? 2 : 3)
+      const scoreB = statusB === 'RETIRADO' ? 1 : (statusB === 'DEVOLVIDO' ? 2 : 3)
+      
+      if (scoreA !== scoreB) {
+        return scoreA - scoreB
+      }
+      
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return dateB - dateA
+    })
+
+    res.json(reservas)
   } catch (err) {
     next(err)
   }

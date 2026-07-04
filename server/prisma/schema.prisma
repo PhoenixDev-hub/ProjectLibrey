@@ -103,6 +103,7 @@ model Reserva {
   devolvidoEm  DateTime? @map("devolvido_em")
 
   createdAt    DateTime @default(now()) @map("created_at")
+  tipoReserva  TipoReserva @default(LEITURA_PESSOAL) @map("tipo_reserva")
 
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   aprovador Usuario? @relation("ReservasAprovadas", fields: [aprovadoPor], references: [id])
@@ -160,4 +161,9 @@ model Evento {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("eventos")
+}
+
+enum TipoReserva {
+  LEITURA_PESSOAL
+  ANALISE_LITERARIA
 }

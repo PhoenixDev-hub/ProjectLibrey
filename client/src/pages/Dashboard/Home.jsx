@@ -10,6 +10,7 @@ import Reservas from './components/Reservas';
 import Leitores from './components/Leitores';
 import Ajuda from './components/Ajuda';
 import Configuracoes from './components/Configuracoes';
+import AnaliseLiteraria from './components/AnaliseLiteraria';
 
 const DashboardContent = () => {
   const { activeTab, user } = useDashboard();
@@ -24,6 +25,8 @@ const DashboardContent = () => {
         return <Emprestimos />;
       case 'reservas':
         return <Reservas />;
+      case 'analise-literaria':
+        return <AnaliseLiteraria />;
       case 'leitores':
         return <Leitores />;
       case 'ajuda':
