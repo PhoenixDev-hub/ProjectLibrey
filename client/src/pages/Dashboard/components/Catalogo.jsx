@@ -1,5 +1,6 @@
 import { AlertCircle, ArrowLeft, Bookmark, BookOpen, ChevronLeft, ChevronRight, Heart, Star, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { api } from '../../../services/api';
 import { useDashboard } from '../../../contexts/DashboardContext';
 import { useBookCover } from '../../../hooks/useBookCover';
 
@@ -73,10 +74,22 @@ const BookCover = ({ title, author, imageUrl, size = 'md' }) => {
 };
 
 const BookDetailsModal = ({ 
-  selectedBookDetails, onClose, isDark, ehAluno, ehBibliotecaria, 
+  selectedBookDetails, onClose, isDark, ehAluno, ehBibliotecaria, ehProfessor,
   favorites, toggleFavorite, handleReservarLivro, getCDDAreaName,
   setEditingBook, setBookForm, setShowBookModal, handleDeletarLivro
 }) => {
+  const [professores, setProfessores] = useState([]);
+  const [showProfessorSelect, setShowProfessorSelect] = useState(false);
+  const [selectedProfessorId, setSelectedProfessorId] = useState('');
+
+  useEffect(() => {
+    if (ehAluno || ehProfessor) {
+      api.get('/usuarios/professores')
+        .then(res => setProfessores(res.data))
+        .catch(err => console.error("Erro ao carregar professores:", err));
+    }
+  }, [ehAluno, ehProfessor]);
+
   if (!selectedBookDetails) return null;
   const b = selectedBookDetails;
 
@@ -171,19 +184,56 @@ const BookDetailsModal = ({
               >
                 Fechar
               </button>
-              {ehAluno && (
+              {(ehAluno || ehProfessor) && (
                 <button
                   type="button"
                   onClick={() => {
-                    handleReservarLivro(b.id);
+                    handleReservarLivro(b.id, null, 'LEITURA_PESSOAL');
                     onClose();
                   }}
                   className={`flex-[2] py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5 shadow-sm text-slate-950
                     ${isDark ? 'bg-sky-500 hover:bg-sky-400' : 'bg-emerald-500 hover:bg-emerald-450'}`}
                 >
                   <Bookmark size={14} />
-                  Reservar Livro
+                  Reservar
                 </button>
+              )}
+              {(ehAluno || ehProfessor) && !showProfessorSelect && (
+                <button
+                  type="button"
+                  onClick={() => setShowProfessorSelect(true)}
+                  className={`flex-[2] py-2.5 rounded-xl font-bold transition text-xs flex items-center justify-center gap-1.5 shadow-sm text-white
+                    ${isDark ? 'bg-violet-600 hover:bg-violet-500' : 'bg-purple-600 hover:bg-purple-500'}`}
+                >
+                  <BookOpen size={14} />
+                  Análise
+                </button>
+              )}
+              {showProfessorSelect && (
+                <div className="flex-[4] flex items-center gap-2">
+                  <select
+                    value={selectedProfessorId}
+                    onChange={(e) => setSelectedProfessorId(e.target.value)}
+                    className={`flex-1 text-xs rounded-xl border p-2 bg-transparent ${isDark ? 'border-white/20 text-white' : 'border-slate-300 text-slate-900'}`}
+                  >
+                    <option value="" disabled>Selecione o Professor</option>
+                    {professores.map(p => (
+                      <option key={p.id} value={p.id} className="text-slate-900">{p.nome} {p.sobrenome}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={!selectedProfessorId}
+                    onClick={() => {
+                      handleReservarLivro(b.id, null, 'ANALISE_LITERARIA', selectedProfessorId);
+                      setShowProfessorSelect(false);
+                      onClose();
+                    }}
+                    className={`p-2 rounded-xl text-white transition ${selectedProfessorId ? 'bg-violet-600 hover:bg-violet-500' : 'bg-slate-400 cursor-not-allowed'}`}
+                  >
+                    Confirmar
+                  </button>
+                </div>
               )}
               {ehBibliotecaria && (
                 <>
@@ -250,7 +300,8 @@ const Catalogo = () => {
   } = useDashboard();
 
   const isDark = theme === 'dark';
-  const ehAluno = user?.tipoUsuario === 'ALUNO';
+  const ehProfessor = user?.tipoUsuario === 'PROFESSOR';
+  const ehAluno = ['ALUNO', 'PROFESSOR'].includes(user?.tipoUsuario);
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
 
   const [activeView, setActiveView] = useState('todos');
@@ -1046,6 +1097,7 @@ const Catalogo = () => {
         onClose={() => setSelectedBookDetails(null)}
         isDark={isDark}
         ehAluno={ehAluno}
+        ehProfessor={ehProfessor}
         ehBibliotecaria={ehBibliotecaria}
         favorites={favorites}
         toggleFavorite={toggleFavorite}

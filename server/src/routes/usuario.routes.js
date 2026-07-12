@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUsuarioController, listarUsuariosController, atualizarUsuarioController } from "../controllers/usuarios.controllers.js";
+import { createUsuarioController, listarUsuariosController, atualizarUsuarioController, listarProfessoresController } from "../controllers/usuarios.controllers.js";
 import { autenticar } from "../middlewares/auth.middleware.js";
 import { soBibliotecaria } from "../middlewares/role.middleware.js";
 
@@ -15,6 +15,7 @@ const protegerCriacaoAdministrativa = (req, res, next) => {
 
 router.post("/", protegerCriacaoAdministrativa, createUsuarioController)
 router.get("/", autenticar, soBibliotecaria, listarUsuariosController)
+router.get("/professores", autenticar, listarProfessoresController)
 router.put("/:id", autenticar, soBibliotecaria, atualizarUsuarioController)
 
 export default router

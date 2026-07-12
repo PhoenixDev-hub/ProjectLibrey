@@ -176,8 +176,6 @@ export async function verifyEmailService(email, code) {
     }
   })
 
-  // We could auto-login them here and return tokens, but let's just return success so the frontend redirects to login or logs them in.
-  // Actually, returning a token here makes the UX smoother!
   const token = createAccessToken(usuario)
   const refreshToken = await createRefreshToken(usuario.id)
 
@@ -204,7 +202,7 @@ export async function resendVerificationService(email) {
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
   await prisma.usuario.update({
     where: { email },

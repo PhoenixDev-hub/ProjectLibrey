@@ -18,6 +18,7 @@ ProjectLibrey foi criado para substituir controles manuais de biblioteca por um 
 - Cadastro e login com autenticação JWT.
 - Perfis de acesso para aluno, professor, bibliotecária e administrador.
 - Atualização de dados de perfil.
+- Verificação de e-mail no cadastro.
 - Recuperação de senha por e-mail.
 
 ### Catálogo
@@ -31,6 +32,7 @@ ProjectLibrey foi criado para substituir controles manuais de biblioteca por um 
 ### Reservas e Empréstimos
 
 - Solicitação de reserva por alunos/professores.
+- Tipos de reserva (Leitura Pessoal e Análise Literária para professores).
 - Criação de reserva para leitores pela bibliotecária.
 - Aprovação e rejeição de reservas.
 - Registro de retirada e devolução.
@@ -95,7 +97,6 @@ ProjectLibrey/
 │   │   ├── migrations/
 │   │   ├── schema.prisma
 │   │   └── seed.js
-│   ├── scripts/
 │   ├── src/
 │   │   ├── config/
 │   │   ├── controllers/

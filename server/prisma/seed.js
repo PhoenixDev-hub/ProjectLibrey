@@ -2,6 +2,7 @@ import csv from 'csv-parser';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcrypt';
 import { prisma } from '../lib/prisma.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,11 @@ async function main() {
   await prisma.reserva.deleteMany();
   await prisma.exemplar.deleteMany();
   await prisma.livro.deleteMany();
+  
+  const testEmails = ['admin@librey.com', 'bibliotecaria@librey.com', 'professor@librey.com', 'aluno@librey.com'];
+  await prisma.usuario.deleteMany({
+    where: { email: { in: testEmails } }
+  });
   console.log('Tabelas limpas com sucesso!');
 
   const records = [];
@@ -87,7 +93,28 @@ async function main() {
     }
   }
 
-  console.log('Importação concluída com sucesso!');
+  console.log('Importação de livros concluída com sucesso!');
+
+  console.log('Criando usuários de teste...');
+  const senhaHash = await bcrypt.hash('Senha123', 10);
+
+  const usuariosTeste = [
+    { nome: 'Admin', sobrenome: 'Teste', email: 'admin@librey.com', senha: senhaHash, tipoUsuario: 'ADMINISTRADOR', emailVerificado: true, status: 'ATIVO', anoInicioEnsinoMedio: 2024 },
+    { nome: 'Bibliotecária', sobrenome: 'Teste', email: 'bibliotecaria@librey.com', senha: senhaHash, tipoUsuario: 'BIBLIOTECARIA', emailVerificado: true, status: 'ATIVO', anoInicioEnsinoMedio: 2024 },
+    { nome: 'Professor', sobrenome: 'Teste', email: 'professor@librey.com', senha: senhaHash, tipoUsuario: 'PROFESSOR', emailVerificado: true, status: 'ATIVO', anoInicioEnsinoMedio: 2024 },
+    { nome: 'Aluno', sobrenome: 'Teste', email: 'aluno@librey.com', senha: senhaHash, tipoUsuario: 'ALUNO', emailVerificado: true, status: 'ATIVO', anoInicioEnsinoMedio: 2024 }
+  ];
+
+  for (const user of usuariosTeste) {
+    await prisma.usuario.create({ data: user });
+  }
+
+  console.log('Usuários de teste criados com sucesso:');
+  console.log('- admin@librey.com / Senha123');
+  console.log('- bibliotecaria@librey.com / Senha123');
+  console.log('- professor@librey.com / Senha123');
+  console.log('- aluno@librey.com / Senha123');
+
 }
 
 main()

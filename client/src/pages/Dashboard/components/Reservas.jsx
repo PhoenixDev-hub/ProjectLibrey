@@ -213,6 +213,7 @@ const Reservas = () => {
                   <th className="py-4 px-6">Livro</th>
                   {ehBibliotecaria && <th className="py-4 px-6">Leitor</th>}
                   <th className="py-4 px-6">Solicitada em</th>
+                  <th className="py-4 px-6">Tipo</th>
                   <th className="py-4 px-6">Status</th>
                   {ehBibliotecaria && <th className="py-4 px-6 text-right">Ações</th>}
                 </tr>
@@ -252,6 +253,25 @@ const Reservas = () => {
 
                     <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-350' : 'text-slate-600'}`}>
                       {formatDate(res.createdAt)}
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <div className="flex flex-col gap-1">
+                        {res.tipoReserva === 'ANALISE_LITERARIA' ? (
+                          <span className="inline-flex items-center w-fit gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 border border-violet-200 dark:border-violet-850/30">
+                            Análise Literária
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center w-fit gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-white/5 dark:text-slate-400 border border-slate-200 dark:border-white/5">
+                            Leitura Pessoal
+                          </span>
+                        )}
+                        {res.tipoReserva === 'ANALISE_LITERARIA' && res.professor && (
+                          <span className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                            Prof: {res.professor.nome} {res.professor.sobrenome}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-4 px-6">

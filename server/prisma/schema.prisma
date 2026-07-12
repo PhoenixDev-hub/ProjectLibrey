@@ -26,6 +26,7 @@ model Usuario {
   passwordResets       PasswordReset[]
   reservas          Reserva[]
   reservasAprovadas Reserva[] @relation("ReservasAprovadas")
+  reservasAnalisadas Reserva[] @relation("ReservasProfessor")
   notificacoes      Notificacao[]
   duvidas           Duvida[]
 
@@ -104,9 +105,11 @@ model Reserva {
 
   createdAt    DateTime @default(now()) @map("created_at")
   tipoReserva  TipoReserva @default(LEITURA_PESSOAL) @map("tipo_reserva")
+  professorId  Int?     @map("professor_id")
 
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
   aprovador Usuario? @relation("ReservasAprovadas", fields: [aprovadoPor], references: [id])
+  professor Usuario? @relation("ReservasProfessor", fields: [professorId], references: [id])
   exemplar  Exemplar @relation(fields: [exemplarId], references: [id])
   notificacoes Notificacao[]
 

@@ -57,6 +57,7 @@ export default function Cadastro() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState({});
 
   useEffect(() => {
     if (location.state?.verifyEmail) {
@@ -65,8 +66,12 @@ export default function Cadastro() {
   }, [location.state]);
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
     if (errorMessage) setErrorMessage("");
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   }
 
   function getServerMessage(error) {
@@ -119,6 +124,7 @@ export default function Cadastro() {
           form.tipoUsuario === TipoUsuario.ALUNO ? form.anoSala : undefined,
       };
 
+      setValidationErrors({});
       const result = await register(requestBody);
       if (result.requireVerification) {
         setIsVerifying(true);
@@ -127,6 +133,18 @@ export default function Cadastro() {
         navigate("/dashboard");
       }
     } catch (error) {
+      const serverError = error.response?.data;
+      const details = serverError?.details || serverError?.issues;
+
+      if (Array.isArray(details)) {
+        const errors = {};
+        details.forEach((detail) => {
+          if (detail.campo) {
+            errors[detail.campo] = detail.mensagem || detail.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
       setErrorMessage(getServerMessage(error));
     } finally {
       setIsLoading(false);
@@ -277,97 +295,132 @@ export default function Cadastro() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  name="nome"
-                  placeholder="Nome"
-                  value={form.nome}
-                  onChange={handleChange}
-                  required
-                  className={fieldClass}
-                />
+              <div>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    name="nome"
+                    placeholder="Nome"
+                    value={form.nome}
+                    onChange={handleChange}
+                    required
+                    className={`${fieldClass} ${validationErrors.nome ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.nome && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.nome}</p>
+                )}
               </div>
 
-              <div className="relative">
-                <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  name="sobrenome"
-                  placeholder="Sobrenome"
-                  value={form.sobrenome}
-                  onChange={handleChange}
-                  required
-                  className={fieldClass}
-                />
+              <div>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    name="sobrenome"
+                    placeholder="Sobrenome"
+                    value={form.sobrenome}
+                    onChange={handleChange}
+                    required
+                    className={`${fieldClass} ${validationErrors.sobrenome ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.sobrenome && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.sobrenome}</p>
+                )}
               </div>
             </div>
 
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={handleChange}
-                required
-                className={fieldClass}
-              />
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
-                  type="password"
-                  name="senha"
-                  placeholder="Senha"
-                  value={form.senha}
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={form.email}
                   onChange={handleChange}
                   required
-                  className={fieldClass}
+                  className={`${fieldClass} ${validationErrors.email ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
                 />
               </div>
-
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="password"
-                  name="confirmarSenha"
-                  placeholder="Confirmar senha"
-                  value={form.confirmarSenha}
-                  onChange={handleChange}
-                  required
-                  className={fieldClass}
-                />
-              </div>
+              {validationErrors.email && (
+                <p className="mt-1 text-xs text-red-600">{validationErrors.email}</p>
+              )}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="number"
-                  name="anoInicioEnsinoMedio"
-                  placeholder="Ano início"
-                  min={1900}
-                  max={new Date().getFullYear() + 1}
-                  value={form.anoInicioEnsinoMedio}
-                  onChange={handleChange}
-                  required
-                  className={fieldClass}
-                />
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="password"
+                    name="senha"
+                    placeholder="Senha"
+                    value={form.senha}
+                    onChange={handleChange}
+                    required
+                    className={`${fieldClass} ${validationErrors.senha ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.senha && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.senha}</p>
+                )}
               </div>
 
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  name="telefone"
-                  placeholder="Telefone"
-                  value={form.telefone}
-                  onChange={handleChange}
-                  className={fieldClass}
-                />
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="password"
+                    name="confirmarSenha"
+                    placeholder="Confirmar senha"
+                    value={form.confirmarSenha}
+                    onChange={handleChange}
+                    required
+                    className={`${fieldClass} ${validationErrors.confirmarSenha ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.confirmarSenha && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.confirmarSenha}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="number"
+                    name="anoInicioEnsinoMedio"
+                    placeholder="Ano início"
+                    min={1900}
+                    max={new Date().getFullYear() + 1}
+                    value={form.anoInicioEnsinoMedio}
+                    onChange={handleChange}
+                    required
+                    className={`${fieldClass} ${validationErrors.anoInicioEnsinoMedio ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.anoInicioEnsinoMedio && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.anoInicioEnsinoMedio}</p>
+                )}
+              </div>
+
+              <div>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    name="telefone"
+                    placeholder="Telefone (opcional)"
+                    value={form.telefone}
+                    onChange={handleChange}
+                    className={`${fieldClass} ${validationErrors.telefone ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                  />
+                </div>
+                {validationErrors.telefone && (
+                  <p className="mt-1 text-xs text-red-600">{validationErrors.telefone}</p>
+                )}
               </div>
             </div>
 

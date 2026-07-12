@@ -29,9 +29,8 @@ export async function criarUsuario(data, isAdmin = false) {
     };
   }
 
-  // Generate 6-digit code
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
   const usuario = await prisma.usuario.create({
     data: {
@@ -43,7 +42,6 @@ export async function criarUsuario(data, isAdmin = false) {
     },
   });
 
-  // Dynamically import to avoid circular dependencies if any
   const { sendVerificationEmail } = await import("../utils/mailer.js");
   await sendVerificationEmail(usuario.email, code);
 
@@ -143,4 +141,11 @@ export async function atualizarUsuarioStatus(id, status) {
     },
   });
   return usuario;
+}
+
+export async function listarProfessores() {
+  return await prisma.usuario.findMany({
+    where: { tipoUsuario: "PROFESSOR", status: "ATIVO" },
+    select: { id: true, nome: true, sobrenome: true, email: true }
+  });
 }

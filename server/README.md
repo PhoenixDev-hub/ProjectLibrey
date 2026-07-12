@@ -38,8 +38,6 @@ server/
 │   ├── migrations/
 │   ├── schema.prisma
 │   └── seed.js
-├── scripts/
-│   └── send_test_email.mjs
 ├── src/
 │   ├── config/
 │   ├── controllers/
@@ -98,7 +96,12 @@ Importar dados iniciais:
 npm run prisma:seed
 ```
 
-O seed lê `../Livros.csv` e cria livros/exemplares conforme os dados disponíveis.
+O seed lê `../Livros.csv` e cria livros/exemplares conforme os dados disponíveis. Além disso, o seed cria **usuários de teste** para facilitar o desenvolvimento:
+
+- `admin@librey.com` (Senha: `Senha123`) - Perfil: Administrador
+- `bibliotecaria@librey.com` (Senha: `Senha123`) - Perfil: Bibliotecária
+- `professor@librey.com` (Senha: `Senha123`) - Perfil: Professor
+- `aluno@librey.com` (Senha: `Senha123`) - Perfil: Aluno
 
 ## Execução
 
@@ -144,6 +147,8 @@ GET /health
 |---|---|---|
 | `POST` | `/login` | Público |
 | `POST` | `/cadastro` | Público |
+| `POST` | `/auth/verify` | Público |
+| `POST` | `/auth/resend-verification` | Público |
 | `GET` | `/me` | Autenticado |
 | `PUT` | `/me` | Autenticado |
 
@@ -182,9 +187,10 @@ GET /health
 | Método | Rota | Acesso |
 |---|---|---|
 | `GET` | `/reservas` | Autenticado |
+| `GET` | `/reservas/analise-literaria` | Autenticado (Prof/Bib/Admin) |
 | `POST` | `/reservas` | Autenticado |
 | `PATCH` | `/reservas/:id/status` | Bibliotecária/Admin |
-| `PATCH` | `/reservas/:id/retirar` | Bibliotecária/Admin |
+| `PATCH` | `/reservas/:id/retirar` | Autenticado |
 | `PATCH` | `/reservas/:id/devolver` | Bibliotecária/Admin |
 
 ### Administração
@@ -222,12 +228,6 @@ O middleware de autenticação valida o token, identifica o usuário e injeta os
 ## E-mail e Recuperação de Senha
 
 Em desenvolvimento, se SMTP não estiver configurado, o sistema usa Ethereal para pré-visualização de e-mails.
-
-Teste manual:
-
-```bash
-NODE_ENV=development node scripts/send_test_email.mjs
-```
 
 Também é possível usar:
 

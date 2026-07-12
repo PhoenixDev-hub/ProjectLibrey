@@ -1,5 +1,5 @@
 import { createUsuarioAdminSchema, createUsuarioSchema } from "../schemas/usuario.schemas.js";
-import { criarUsuario, listarUsuarios, atualizarUsuario } from "../service/usuario.service.js";
+import { criarUsuario, listarUsuarios, atualizarUsuario, listarProfessores } from "../service/usuario.service.js";
 import logger from "../utils/logger.js";
 
 export async function createUsuarioController(req, res, next) {
@@ -35,6 +35,16 @@ export async function atualizarUsuarioController(req, res, next) {
     return res.json(user);
   } catch (error) {
     logger.error("Erro ao atualizar usuário", { error: error.message });
+    next(error);
+  }
+}
+
+export async function listarProfessoresController(req, res, next) {
+  try {
+    const professores = await listarProfessores();
+    return res.json(professores);
+  } catch (error) {
+    logger.error("Erro ao listar professores", { error: error.message });
     next(error);
   }
 }

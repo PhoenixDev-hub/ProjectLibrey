@@ -78,12 +78,15 @@ export default function Login() {
         navigate("/dashboard");
       }
     } catch (err) {
-      if (err.response?.status === 429) {
+      const serverError = err.response?.data?.error;
+      if (serverError) {
+        setError(serverError);
+      } else if (err.response?.status === 429) {
         setError("Muitas tentativas. Tente novamente em 15 minutos");
       } else if (err.response?.status === 401) {
         setError("Email ou senha inválidos");
       } else if (err.response?.status === 400) {
-        setError(err.response.data?.error || "Dados inválidos");
+        setError("Dados inválidos");
       } else {
         setError(err.message || "Erro ao fazer login. Tente novamente");
       }

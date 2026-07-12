@@ -335,6 +335,7 @@ const Emprestimos = () => {
                   {ehBibliotecaria && <th className="py-4 px-6">Leitor</th>}
                   <th className="py-4 px-6">Retirada</th>
                   <th className="py-4 px-6">Prazo Devolução / Limite Retirada</th>
+                  <th className="py-4 px-6">Tipo</th>
                   <th className="py-4 px-6">Status</th>
                   {ehBibliotecaria && <th className="py-4 px-6 text-right">Ações</th>}
                 </tr>
@@ -380,6 +381,25 @@ const Emprestimos = () => {
                       </td>
                       <td className={`py-4 px-6 font-medium ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         {formatDateOrDeadline(loan, 'devolucao')}
+                      </td>
+
+                      <td className="py-4 px-6">
+                        <div className="flex flex-col gap-1">
+                          {loan.tipoReserva === 'ANALISE_LITERARIA' ? (
+                            <span className="inline-flex items-center w-fit gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 border border-violet-200 dark:border-violet-850/30">
+                              Análise Literária
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center w-fit gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-white/5 dark:text-slate-400 border border-slate-200 dark:border-white/5">
+                              Leitura Pessoal
+                            </span>
+                          )}
+                          {loan.tipoReserva === 'ANALISE_LITERARIA' && loan.professor && (
+                            <span className={`text-[11px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                              Prof: {loan.professor.nome} {loan.professor.sobrenome}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-4 px-6">

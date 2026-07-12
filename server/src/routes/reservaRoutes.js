@@ -8,11 +8,11 @@ const router = express.Router()
 
 router.post('/', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), async (req, res, next) => {
   try {
-    const { livroId, usuarioId, tipoReserva } = req.body
+    const { livroId, usuarioId, tipoReserva, professorId } = req.body
     const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(req.usuario.tipoUsuario)
     const targetUsuarioId = (ehBibliotecaria && usuarioId) ? Number(usuarioId) : req.usuario.id
 
-    const reserva = await criarReservas(targetUsuarioId, livroId, tipoReserva)
+    const reserva = await criarReservas(targetUsuarioId, livroId, tipoReserva, professorId ? Number(professorId) : null)
     res.status(201).json({ mensagem: 'Reserva solicitada com sucesso.', reserva })
   } catch (err) {
     next(err)
@@ -52,10 +52,15 @@ router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res, next
 
 router.get('/analise-literaria', autenticar, roleMiddleware(['PROFESSOR', 'BIBLIOTECARIA', 'ADMINISTRADOR']), async (req, res, next) => {
   try {
+    const filtro = { tipoReserva: 'ANALISE_LITERARIA' }
+    
+    // Se for professor, só vê as que ele solicitou
+    if (req.usuario.tipoUsuario === 'PROFESSOR') {
+      filtro.professorId = req.usuario.id
+    }
+
     const reservas = await prisma.reserva.findMany({
-      where: {
-        tipoReserva: 'ANALISE_LITERARIA'
-      },
+      where: filtro,
       include: {
         usuario: {
           select: {
@@ -64,6 +69,12 @@ router.get('/analise-literaria', autenticar, roleMiddleware(['PROFESSOR', 'BIBLI
             sobrenome: true,
             email: true,
             anoSala: true
+          }
+        },
+        professor: {
+          select: {
+            nome: true,
+            sobrenome: true
           }
         },
         exemplar: {
@@ -105,6 +116,7 @@ router.get('/', autenticar, async (req, res, next) => {
       where: filtro,
       include: {
         usuario: { select: { id: true, nome: true, sobrenome: true, email: true, anoSala: true } },
+        professor: { select: { nome: true, sobrenome: true } },
         exemplar: { include: { livro: true } }
       },
       orderBy: { createdAt: 'desc' }
