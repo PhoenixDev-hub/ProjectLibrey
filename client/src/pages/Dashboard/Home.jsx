@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Navigate, useParams } from 'react-router-dom';
 import { DashboardProvider, useDashboard } from '../../contexts/DashboardContext';
 import DashboardShell from '../../components/layout/DashboardShell';
 import { BookModal, EventModal, ReservaModal, UserModal } from '../../components/layout/DashboardModals';
@@ -11,6 +12,29 @@ import Leitores from './components/Leitores';
 import Ajuda from './components/Ajuda';
 import Configuracoes from './components/Configuracoes';
 import AnaliseLiteraria from './components/AnaliseLiteraria';
+
+const validTabs = [
+  'inicio',
+  'catalogo',
+  'emprestimos',
+  'reservas',
+  'analise-literaria',
+  'leitores',
+  'ajuda',
+  'configuracoes',
+];
+
+const DashboardRouteSync = ({ routeTab }) => {
+  const { activeTab, setActiveTab } = useDashboard();
+
+  useEffect(() => {
+    if (activeTab !== routeTab) {
+      setActiveTab(routeTab);
+    }
+  }, [activeTab, routeTab, setActiveTab]);
+
+  return null;
+};
 
 const DashboardContent = () => {
   const { activeTab, user } = useDashboard();
@@ -63,8 +87,16 @@ const DashboardContent = () => {
 };
 
 const Home = () => {
+  const { tab } = useParams();
+  const routeTab = tab || 'inicio';
+
+  if (!validTabs.includes(routeTab)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
-    <DashboardProvider>
+    <DashboardProvider initialTab={routeTab}>
+      <DashboardRouteSync routeTab={routeTab} />
       <DashboardContent />
     </DashboardProvider>
   );

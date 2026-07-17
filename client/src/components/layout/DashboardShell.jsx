@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home as HomeIcon, BookOpen, ShoppingCart, Calendar, 
   HelpCircle, Users, Settings, LogOut, Sun, Moon, Bell, Search, ChevronDown, User,
@@ -7,6 +8,7 @@ import {
 import { useDashboard } from '../../contexts/DashboardContext';
 
 const DashboardShell = ({ children }) => {
+  const navigate = useNavigate();
   const { 
     theme, setTheme, sidebarOpen, activeTab, setActiveTab,
     user, logout, notificationsOpen, setNotificationsOpen, profileOpen, setProfileOpen,
@@ -41,6 +43,11 @@ const DashboardShell = ({ children }) => {
     (item) => !item.roles || item.roles.includes(userType)
   );
 
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    navigate(tabId === 'inicio' ? '/dashboard' : `/dashboard/${tabId}`);
+  };
+
   return (
     <div className={`min-h-screen transition-all duration-300 ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-gray-100 text-slate-900'}`}>
       <div className={`fixed inset-0 transition-all duration-300 ${theme === 'dark' ? 'bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.12),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.18),_transparent_25%),linear-gradient(180deg,_#020617_0%,_#0f172a_100%)]' : 'bg-gray-50'}`} />
@@ -63,7 +70,7 @@ const DashboardShell = ({ children }) => {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveTab(item.id)}
+                    onClick={() => handleTabChange(item.id)}
                     className={`group flex items-center ${sidebarOpen ? 'justify-start' : 'justify-center'} gap-4 rounded-3xl px-4 py-3 text-left transition-all duration-300 ${
                       isActive 
                         ? (theme === 'dark' ? 'bg-slate-800 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.08)]' : 'bg-slate-100 text-slate-900 font-semibold shadow-sm') 
@@ -290,7 +297,7 @@ const DashboardShell = ({ children }) => {
                           <div className="p-1.5 space-y-0.5">
                             <button 
                               onClick={() => {
-                                setActiveTab('configuracoes');
+                                handleTabChange('configuracoes');
                                 setProfileOpen(false);
                               }}
                               className={`flex w-full items-center gap-2 px-3 py-2 text-xs rounded-lg transition ${
@@ -302,7 +309,7 @@ const DashboardShell = ({ children }) => {
                             </button>
                             <button 
                               onClick={() => {
-                                setActiveTab('ajuda');
+                                handleTabChange('ajuda');
                                 setProfileOpen(false);
                               }}
                               className={`flex w-full items-center gap-2 px-3 py-2 text-xs rounded-lg transition ${

@@ -30,10 +30,10 @@ const getCDDAreaName = (areaCode) => {
   return 'Geral';
 };
 
-export const DashboardProvider = ({ children }) => {
+export const DashboardProvider = ({ children, initialTab = 'inicio' }) => {
   const { user, logout, setUser } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('inicio');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [notificationsOpen, setNotificationsOpen] = useState(false);

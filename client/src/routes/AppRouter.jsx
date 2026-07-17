@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Cadastro from "../pages/Auth/Cadastro";
 import ForgotPassword from "../pages/Auth/ForgotPassword";
 import Login from "../pages/Auth/Login";
@@ -26,6 +26,20 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/dashboard/:tab"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/leitores" element={<Navigate to="/dashboard/leitores" replace />} />
+        <Route path="/catalogo" element={<Navigate to="/dashboard/catalogo" replace />} />
+        <Route path="/emprestimos" element={<Navigate to="/dashboard/emprestimos" replace />} />
+        <Route path="/reservas" element={<Navigate to="/dashboard/reservas" replace />} />
+        <Route path="/ajuda" element={<Navigate to="/dashboard/ajuda" replace />} />
+        <Route path="/configuracoes" element={<Navigate to="/dashboard/configuracoes" replace />} />
       </Routes>
     </Suspense>
   );

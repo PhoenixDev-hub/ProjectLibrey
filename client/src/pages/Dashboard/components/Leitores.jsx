@@ -23,23 +23,29 @@ const Leitores = () => {
     '1º Ano': true,
     '2º Ano': true,
     '3º Ano': true,
-    'Professores': false
+    'Professores': false,
+    'Outros': false
   });
 
   const safeUsers = Array.isArray(users) ? users : [];
   const safeReservations = Array.isArray(reservations) ? reservations : [];
   const hoje = new Date();
 
+  const getFirstName = (u) => u.nomeSolo || u.nome || '';
+  const getLastName = (u) => u.sobrenomeSolo || u.sobrenome || '';
+  const getFullName = (u) => `${getFirstName(u)} ${getLastName(u)}`.trim();
+
   const getDynamicClassroom = (u) => {
     if (u.tipoUsuario !== 'ALUNO') return 'Outros';
     if (!u.anoSala) return 'Sem Turma';
 
-    const suffixMatch = u.anoSala.match(/[a-zA-Z]+/);
+    const originalClassroom = String(u.anoSala);
+    const suffixMatch = originalClassroom.match(/[a-zA-Z]+/);
     const suffix = suffixMatch ? suffixMatch[0].toUpperCase() : 'A';
 
     const currentYear = new Date().getFullYear();
     const entryYear = Number(u.anoInicioEnsinoMedio);
-    if (!entryYear) return u.anoSala;
+    if (!entryYear) return originalClassroom;
 
     const calculatedYear = currentYear - entryYear + 1;
 
@@ -47,14 +53,15 @@ const Leitores = () => {
     if (calculatedYear === 2) return `2${suffix}`;
     if (calculatedYear === 3) return `3${suffix}`;
     if (calculatedYear > 3) return 'Concluído';
-    return u.anoSala;
+    return originalClassroom;
   };
 
   const getAno = (sala) => {
-    if (sala === 'Outros' || sala === 'Sem Turma' || sala === 'Concluído') return 'Outros';
-    if (sala.startsWith('1')) return '1º Ano';
-    if (sala.startsWith('2')) return '2º Ano';
-    if (sala.startsWith('3')) return '3º Ano';
+    const salaValue = String(sala || '');
+    if (salaValue === 'Outros' || salaValue === 'Sem Turma' || salaValue === 'Concluído') return 'Outros';
+    if (salaValue.startsWith('1')) return '1º Ano';
+    if (salaValue.startsWith('2')) return '2º Ano';
+    if (salaValue.startsWith('3')) return '3º Ano';
     return 'Outros';
   };
 
@@ -130,7 +137,8 @@ const Leitores = () => {
       '1º Ano': {},
       '2º Ano': {},
       '3º Ano': {},
-      'Professores': {}
+      'Professores': {},
+      'Outros': {}
     };
 
     safeUsers.forEach(u => {
@@ -139,16 +147,21 @@ const Leitores = () => {
 
       if (u.tipoUsuario !== 'ALUNO' && u.tipoUsuario !== 'PROFESSOR') return;
 
+      const search = searchTerm.toLowerCase();
+      const fullName = getFullName(u).toLowerCase();
       const matchesSearch =
-        (u.nome && u.nome.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (u.sobrenome && u.sobrenome.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (u.email && u.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (u.anoSala && u.anoSala.toLowerCase().includes(searchTerm.toLowerCase()));
+        fullName.includes(search) ||
+        (u.email && u.email.toLowerCase().includes(search)) ||
+        (u.anoSala && String(u.anoSala).toLowerCase().includes(search));
 
       if (!matchesSearch) return;
 
       const ano = u.tipoUsuario === 'PROFESSOR' ? 'Professores' : getAno(sala);
       const groupKey = u.tipoUsuario === 'PROFESSOR' ? 'Professor' : sala;
+
+      if (!groups[ano]) {
+        groups[ano] = {};
+      }
 
       if (!groups[ano][groupKey]) {
         groups[ano][groupKey] = [];
@@ -172,8 +185,8 @@ const Leitores = () => {
   const handleEdit = (u) => {
     setEditingUser(u);
     setUserForm({
-      nome: u.nome || '',
-      sobrenome: u.sobrenome || '',
+      nome: getFirstName(u),
+      sobrenome: getLastName(u),
       email: u.email || '',
       senha: '',
       anoSala: u.anoSala || '',
@@ -375,7 +388,7 @@ const Leitores = () => {
       </div>
 
       <div className="flex flex-col gap-4">
-        {['1º Ano', '2º Ano', '3º Ano', 'Professores'].map(ano => {
+        {['1º Ano', '2º Ano', '3º Ano', 'Professores', 'Outros'].map(ano => {
           const classesInAno = groupedUsers[ano] || {};
           const classNames = Object.keys(classesInAno);
           const hasUsers = classNames.some(name => classesInAno[name].length > 0);
@@ -416,14 +429,15 @@ const Leitores = () => {
                       const classStats = classroomStats.find(cs => cs.nome === salaName) || { rate: 100 };
                       const classification = getClassClassification(classStats.rate);
                       const isTeacherGroup = ano === 'Professores';
+                      const isOtherGroup = ano === 'Outros';
 
                       return (
                         <div key={salaName} className="flex flex-col gap-3">
                           <div className="flex items-center gap-3">
                             <h3 className={`text-sm font-black ${isDark ? 'text-slate-355' : 'text-slate-700'}`}>
-                              {isTeacherGroup ? 'Corpo Docente' : `Turma: ${salaName}`}
+                              {isTeacherGroup ? 'Corpo Docente' : isOtherGroup ? salaName : `Turma: ${salaName}`}
                             </h3>
-                            {!isTeacherGroup && (
+                            {!isTeacherGroup && !isOtherGroup && (
                               <span className={`inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-0.5 rounded-full ${
                                 classification === 'Ouro' ? 'bg-yellow-500/20 text-yellow-250 border border-yellow-500/20' :
                                 classification === 'Prata' ? 'bg-slate-350/20 text-slate-400 border border-slate-300/30' :
@@ -454,7 +468,7 @@ const Leitores = () => {
                                     <div className="flex items-start justify-between gap-3 mb-2">
                                       <div className="overflow-hidden">
                                         <h4 className={`font-bold text-sm truncate ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                                          {u.nome} {u.sobrenome}
+                                          {getFullName(u)}
                                         </h4>
                                         <p className={`text-xs ${isDark ? 'text-slate-450' : 'text-slate-500'} truncate`}>
                                           {u.email}
