@@ -143,13 +143,33 @@ Edite `server/.env`:
 ```env
 NODE_ENV=development
 PORT=3333
-DATABASE_URL=postgresql://usuario:senha@localhost:5432/project_librey
-JWT_SECRET=sua-chave-secreta
+DATABASE_URL=postgresql://postgres:SUBSTITUA_PELA_SENHA_URL_ENCODED@localhost:5432/project_library
+DB_USER=postgres
+DB_PASSWORD=SUBSTITUA_POR_UMA_SENHA_LOCAL_FORTE
+JWT_SECRET=SUBSTITUA_POR_UM_SEGREDO_ALEATORIO_FORTE
 FRONTEND_URL=http://localhost:5173
 CORS_ORIGIN=http://localhost:5173
 ```
 
+`DATABASE_URL` é obrigatória tanto para a API quanto para os comandos Prisma.
+Substitua os placeholders; use o mesmo usuário e senha em `DATABASE_URL` e
+`DB_USER`/`DB_PASSWORD`, codificando caracteres especiais da senha na URL.
+Não versione o arquivo `.env` preenchido.
+
+Para iniciar somente o PostgreSQL local, execute **na raiz do repositório**:
+
+```bash
+docker compose --env-file server/.env up -d postgres
+```
+
+O Compose exige `DB_PASSWORD` não vazia e publica a porta apenas em
+`127.0.0.1:5432`. `DB_USER` é opcional (padrão `postgres`). O banco criado se
+chama `project_library`. Alterar essas variáveis não troca as credenciais de
+um volume já inicializado; nesse caso, altere a senha no próprio PostgreSQL.
+
 ### 3. Preparar banco de dados
+
+Execute em `server/`:
 
 ```bash
 npx prisma generate

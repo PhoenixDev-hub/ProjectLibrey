@@ -1,8 +1,9 @@
-import { defineConfig } from 'prisma/config'
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
 
 export default defineConfig({
   schema: './prisma/schema.prisma',
   datasource: {
-    url: 'postgresql://bibliotecaria:ProjectLibray@localhost:5432/librey',
+    url: env("DATABASE_URL"),
   },
 })
