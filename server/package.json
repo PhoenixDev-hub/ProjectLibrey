@@ -6,6 +6,7 @@
   "scripts": {
     "start:dev": "nodemon index.js",
     "start": "node index.js",
+    "test": "node --experimental-vm-modules --test test/*.test.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js"

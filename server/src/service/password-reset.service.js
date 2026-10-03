@@ -16,7 +16,7 @@ export async function requestPasswordReset(email) {
     if (!usuario) {
       logger.warn('Tentativa de reset com email inexistente', { email })
       return {
-        message: "Se o email existe em nosso sistema, você receberá instruções para resetar a senha",
+        message: "Se a conta existir, você receberá instruções por e-mail.",
         resetSent: false,
       }
     }
@@ -24,7 +24,7 @@ export async function requestPasswordReset(email) {
     if (usuario.status !== "ATIVO") {
       logger.warn('Tentativa de reset com usuário inativo', { email })
       return {
-        message: "Se o email existe em nosso sistema, você receberá instruções para resetar a senha",
+        message: "Se a conta existir, você receberá instruções por e-mail.",
         resetSent: false,
       }
     }
@@ -71,31 +71,14 @@ export async function requestPasswordReset(email) {
 
     logger.info('Token de reset de senha gerado', { email, expiresAt })
     try {
-      const sendResult = await sendPasswordResetEmail(usuario.email, resetToken, expiresAt)
+      await sendPasswordResetEmail(usuario.email, resetToken, expiresAt)
       logger.info('Tentativa de envio de email de reset executada', { email: usuario.email })
-      if (process.env.NODE_ENV === 'development' && sendResult && sendResult.previewUrl) {
-        return {
-          message: "Se o email existe em nosso sistema, você receberá instruções para resetar a senha",
-          resetSent: true,
-          _devToken: resetToken,
-          _devPreviewUrl: sendResult.previewUrl,
-        }
-      }
     } catch (err) {
       logger.error('Falha ao enviar email de reset (não será exibido ao usuário)', { email: usuario.email, error: err.message })
     }
 
-    if (process.env.NODE_ENV === "development") {
-      logger.debug('Token de reset (DEV)', { token: resetToken })
-      return {
-        message: "Se o email existe em nosso sistema, você receberá instruções para resetar a senha",
-        resetSent: true,
-        _devToken: resetToken,
-      }
-    }
-
     return {
-      message: "Se o email existe em nosso sistema, você receberá instruções para resetar a senha",
+      message: "Se a conta existir, você receberá instruções por e-mail.",
       resetSent: true,
     }
   } catch (error) {

@@ -23,9 +23,7 @@ export async function requestPasswordResetController(req, res, next) {
 
 
     return res.status(200).json({
-      message: result.message,
-      ...(process.env.NODE_ENV === 'development' && result._devToken && { _devToken: result._devToken }),
-      ...(process.env.NODE_ENV === 'development' && result._devPreviewUrl && { _devPreviewUrl: result._devPreviewUrl }),
+      message: "Se a conta existir, você receberá instruções por e-mail.",
     })
   } catch (error) {
     logger.warn('Erro ao solicitar reset de senha', { error: error.message })

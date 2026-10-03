@@ -75,7 +75,7 @@ export async function sendPasswordResetEmail(to, token, expiresAt) {
     let previewUrl = null
     if (usingEthereal) {
       previewUrl = nodemailer.getTestMessageUrl(info)
-      logger.info('Email de reset enviado (Ethereal preview)', { to, messageId: info.messageId, previewUrl })
+      logger.info('Email de reset enviado (Ethereal preview)', { to, messageId: info.messageId })
     } else {
       logger.info('Email de reset enviado', { to, messageId: info.messageId })
     }
@@ -110,7 +110,7 @@ export async function sendVerificationEmail(to, code) {
     let previewUrl = null
     if (usingEthereal) {
       previewUrl = nodemailer.getTestMessageUrl(info)
-      logger.info('Email de verificação enviado (Ethereal preview)', { to, messageId: info.messageId, previewUrl })
+      logger.info('Email de verificação enviado (Ethereal preview)', { to, messageId: info.messageId })
     } else {
       logger.info('Email de verificação enviado', { to, messageId: info.messageId })
     }
