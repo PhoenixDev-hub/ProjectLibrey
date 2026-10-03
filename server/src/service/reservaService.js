@@ -207,10 +207,7 @@ async function registrarRetirada(reservaId) {
     });
 
     if (!reserva) {
-        throw new Error("Reserva não encontrada");
-    }
-    if (reserva.status !== "APROVADO") {
-        throw new Error("Apenas reservas aprovadas podem ser retiradas");
+        throw Object.assign(new Error("Reserva indisponível"), { status: 404 });
     }
 
     const now = new Date();
@@ -221,9 +218,10 @@ async function registrarRetirada(reservaId) {
     prazoDevol.setDate(prazoDevol.getDate() + diasPrazo);
 
     await prisma.$transaction(async (tx) => {
-        await tx.reserva.update({
+        const retirada = await tx.reserva.updateMany({
             where: {
-                id: reservaId
+                id: reservaId,
+                status: "APROVADO"
             },
             data: {
                 status: "RETIRADO",
@@ -231,6 +229,10 @@ async function registrarRetirada(reservaId) {
                 prazoDevol
             }
         });
+
+        if (retirada.count !== 1) {
+            throw Object.assign(new Error("Reserva indisponível"), { status: 404 });
+        }
 
         await tx.notificacao.create({
             data: {

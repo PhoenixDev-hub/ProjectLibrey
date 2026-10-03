@@ -38,8 +38,8 @@ const handleRetirada = async (req, res, next) => {
   }
 }
 
-router.patch('/:id/retirar', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), handleRetirada)
-router.put('/:id/retirar', autenticar, roleMiddleware(['ALUNO', 'BIBLIOTECARIA', 'ADMINISTRADOR']), handleRetirada)
+router.patch('/:id/retirar', autenticar, soBibliotecaria, handleRetirada)
+router.put('/:id/retirar', autenticar, soBibliotecaria, handleRetirada)
 
 router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res, next) => {
   try {
