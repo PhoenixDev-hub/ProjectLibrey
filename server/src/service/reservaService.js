@@ -67,7 +67,7 @@ async function criarReservas(usuarioId, livroId, tipoReserva = "LEITURA_PESSOAL"
                 professorId: professorId || null
             },
             include: {
-                usuario: true,
+                usuario: { select: { id: true, nome: true, sobrenome: true } },
                 exemplar: {
                     include: {
                         livro: true,
