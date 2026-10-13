@@ -33,7 +33,11 @@ export const config = {
     nodeEnv: process.env.NODE_ENV || 'development'
   },
   cors: {
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(url => url.trim()) : ['http://localhost:5173', 'http://localhost:3000']
+    // SEC-FIX (FIX 2): allowlist de origens — split por vírgula, trim e filtro
+    // de strings vazias. Nada de wildcard; origens desconhecidas são negadas.
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map(url => url.trim()).filter(Boolean)
+      : ['http://localhost:5173', 'http://localhost:3000']
   }
 };
 
