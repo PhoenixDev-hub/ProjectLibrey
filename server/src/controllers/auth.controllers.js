@@ -20,7 +20,8 @@ export async function loginCadastro(req, res, next) {
 
     return res.json(result);
   } catch (error) {
-    logger.warn('Tentativa de login falhada', { email: req.body.email, error: error.message });
+    // SEC-FIX (FIX 3): não logar email em falha de login (enumeração + PII).
+    logger.warn('Tentativa de login falhada', { reason: error.code || 'INVALID_CREDENTIALS' });
     next(error);
   }
 }
