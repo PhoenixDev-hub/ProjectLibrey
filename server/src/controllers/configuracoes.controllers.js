@@ -30,28 +30,30 @@ export async function obterConfiguracoes(req, res, next) {
 
 export async function atualizarConfiguracoes(req, res, next) {
   try {
+    // SEC-FIX (FIX 4): corpo validado/coerido pelo atualizarConfiguracoesSchema
+    // (números já convertidos, permitirRenovacao já boolean, strings já trimmadas).
     const { 
       prazoDevolucao, 
       limiteEmprestimos, 
       permitirRenovacao, 
       nomeBiblioteca 
-    } = req.body;
-    const renovacao = permitirRenovacao === true || permitirRenovacao === 'true';
+    } = req.validatedData;
 
     const config = await prisma.configuracao.upsert({
       where: { id: CONFIG_ID },
+      // Campos undefined são ignorados pelo Prisma (atualização parcial).
       update: {
-        prazoDevolucao: prazoDevolucao !== undefined ? Number(prazoDevolucao) : undefined,
-        limiteEmprestimos: limiteEmprestimos !== undefined ? Number(limiteEmprestimos) : undefined,
-        permitirRenovacao: permitirRenovacao !== undefined ? renovacao : undefined,
-        nomeBiblioteca: nomeBiblioteca !== undefined ? nomeBiblioteca.trim() : undefined,
+        prazoDevolucao,
+        limiteEmprestimos,
+        permitirRenovacao,
+        nomeBiblioteca,
       },
       create: {
         id: CONFIG_ID,
-        prazoDevolucao: prazoDevolucao !== undefined ? Number(prazoDevolucao) : 30,
-        limiteEmprestimos: limiteEmprestimos !== undefined ? Number(limiteEmprestimos) : 5,
-        permitirRenovacao: permitirRenovacao !== undefined ? renovacao : true,
-        nomeBiblioteca: nomeBiblioteca !== undefined ? nomeBiblioteca.trim() : "Biblioteca ProjectLibrey",
+        prazoDevolucao: prazoDevolucao ?? 30,
+        limiteEmprestimos: limiteEmprestimos ?? 5,
+        permitirRenovacao: permitirRenovacao ?? true,
+        nomeBiblioteca: nomeBiblioteca ?? "Biblioteca ProjectLibrey",
       }
     });
 

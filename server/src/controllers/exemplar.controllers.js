@@ -3,7 +3,8 @@ import logger from "../utils/logger.js";
 
 export async function criarExemplar(req, res, next) {
   try {
-    const { livroId, codigo, status } = req.body;
+    // SEC-FIX (FIX 4): corpo validado pelo criarExemplarSchema (validationMiddleware).
+    const { livroId, codigo, status } = req.validatedData;
 
     const exemplar = await prisma.exemplar.create({
       data: {
@@ -61,7 +62,8 @@ export async function obterExemplarById(req, res, next) {
 export async function atualizarExemplar(req, res, next) {
   try {
     const { id } = req.params;
-    const { codigo, status } = req.body;
+    // SEC-FIX (FIX 4): corpo validado pelo atualizarExemplarSchema (parcial).
+    const { codigo, status } = req.validatedData;
 
     const exemplar = await prisma.exemplar.update({
       where: { id },

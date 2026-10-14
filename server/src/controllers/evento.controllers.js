@@ -15,11 +15,10 @@ export async function listarEventos(req, res, next) {
 
 export async function criarEvento(req, res, next) {
   try {
-    const { title, date, type } = req.body;
-
-    if (!title || !date || !type) {
-      return res.status(400).json({ error: "Título, data e tipo são obrigatórios." });
-    }
+    // SEC-FIX (FIX 4): corpo validado pelo criarEventoSchema (validationMiddleware).
+    // SEC-FIX: removido o check manual `if (!title || !date || !type) -> 400`
+    // porque a validação de presença/formato acontece no schema, antes deste ponto.
+    const { title, date, type } = req.validatedData;
 
     const evento = await prisma.evento.create({
       data: {

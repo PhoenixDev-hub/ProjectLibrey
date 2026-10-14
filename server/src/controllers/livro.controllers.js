@@ -3,7 +3,8 @@ import logger from "../utils/logger.js";
 
 export async function criarLivro(req, res, next) {
   try {
-    const { titulo, autor, editora, anoPublicacao, isbn, area, sinopse } = req.body;
+    // SEC-FIX (FIX 4): corpo validado pelo criarLivroSchema (validationMiddleware).
+    const { titulo, autor, editora, anoPublicacao, isbn, area, sinopse } = req.validatedData;
 
     const livro = await prisma.livro.create({
       data: {
@@ -65,7 +66,8 @@ export async function obterLivroById(req, res, next) {
 export async function atualizarLivro(req, res, next) {
   try {
     const { id } = req.params;
-    const { titulo, autor, editora, anoPublicacao, isbn, area, sinopse } = req.body;
+    // SEC-FIX (FIX 4): corpo validado pelo atualizarLivroSchema (parcial).
+    const { titulo, autor, editora, anoPublicacao, isbn, area, sinopse } = req.validatedData;
 
     const livro = await prisma.livro.update({
       where: { id },
