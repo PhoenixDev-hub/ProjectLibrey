@@ -16,7 +16,6 @@ const reserva = { id: 'r1', usuarioId: 1, status: 'PENDENTE', usuario: user, pro
 const duvida = { id: 'd1', usuarioId: 1, duvida: 'Dúvida', usuario: user };
 const notificacao = { id: 'n1', lida: false, reserva };
 
-// Simulate Prisma's scalar/select/include semantics, including unsafe scalar fields.
 function project(row, query = {}) {
   if (Array.isArray(row)) return row.map(item => project(item, query));
   if (query === true) query = {};
@@ -87,7 +86,12 @@ test('A06: notification API never returns nested user secrets', async () => {
 
 async function callController(controller, req) {
   let body;
-  const res = { status() { return this; }, json(value) { body = value; return this; } };
+  const res = {
+    status() { return this; },
+    json(value) { body = value; return this; },
+    cookie() { return this; },
+    clearCookie() { return this; },
+  };
   await controller(req, res, error => { throw error; });
   assert.notEqual(body, undefined);
   noSecrets(body);

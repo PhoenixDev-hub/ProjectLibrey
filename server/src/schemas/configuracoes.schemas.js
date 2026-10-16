@@ -1,9 +1,6 @@
 import { z } from 'zod';
 
-// SEC-FIX (FIX 4): validação de corpo para PUT /configuracoes (VALID-02).
-// Bounds alinhados aos inputs do front (min/max dos campos number).
-// O front envia prazoDevolucao/limiteEmprestimos como string após edição
-// (handleConfigChange guarda o value cru) -> coerce para number.
+
 export const atualizarConfiguracoesSchema = z.object({
   prazoDevolucao: z.coerce.number()
     .int('Prazo deve ser um número inteiro')
@@ -15,7 +12,6 @@ export const atualizarConfiguracoesSchema = z.object({
     .min(1, 'Limite mínimo é 1')
     .max(50, 'Limite máximo é 50')
     .optional(),
-  // Booleano legítimo ou string 'true'/'false' (formato já aceito pelo controller).
   permitirRenovacao: z.union([z.boolean(), z.enum(['true', 'false'])])
     .transform(v => v === true || v === 'true')
     .optional(),

@@ -1,4 +1,4 @@
-import { createUsuarioAdminSchema, createUsuarioSchema } from "../schemas/usuario.schemas.js";
+import { createUsuarioAdminSchema, createUsuarioSchema, atualizarClassificacaoSchema } from "../schemas/usuario.schemas.js";
 import { criarUsuario, listarUsuarios, atualizarUsuario, listarProfessores } from "../service/usuario.service.js";
 import logger from "../utils/logger.js";
 
@@ -31,6 +31,10 @@ export async function listarUsuariosController(req, res, next) {
 export async function atualizarUsuarioController(req, res, next) {
   try {
     const { id } = req.params;
+    atualizarClassificacaoSchema.parse({
+      tipoUsuario: req.body.tipoUsuario,
+      status: req.body.status,
+    });
     const user = await atualizarUsuario(id, req.body);
     return res.json(user);
   } catch (error) {

@@ -217,13 +217,20 @@ GET /health
 
 ## Autenticação
 
-Rotas protegidas recebem o token no cabeçalho:
+Rotas protegidas aceitam o token no cabeçalho:
 
 ```txt
 Authorization: Bearer <token>
 ```
 
-O middleware de autenticação valida o token, identifica o usuário e injeta os dados na requisição.
+ou a sessão por cookies httpOnly (`access_token`), definida por `POST /login`
+e renovada por `POST /auth/refresh`. Nesse modo, mutações
+(POST/PUT/PATCH/DELETE) devem enviar o cabeçalho `X-CSRF-Token` com o valor do
+cookie legível `csrf_token` (double-submit), senão respondem `403`.
+
+O middleware de autenticação valida o token (cabeçalho ou cookie), identifica o
+usuário e injeta os dados na requisição. Os tokens nunca aparecem no corpo JSON
+das respostas (SEC-FIX 6).
 
 ## E-mail e Recuperação de Senha
 

@@ -42,7 +42,6 @@ export default function Calendar() {
   const isCurrentMonthReal = today.getFullYear() === year && today.getMonth() === month;
   const currentDay = today.getDate();
 
-  // 1. Devoluções/Entregas dinâmicas a partir das reservas (status RETIRADO e APROVADO)
   const safeReservations = Array.isArray(reservations) ? reservations : [];
   const activeLoans = ehBibliotecaria 
     ? safeReservations.filter(r => r.status === 'RETIRADO' || r.status === 'APROVADO')
@@ -80,7 +79,6 @@ export default function Calendar() {
       return null;
     }).filter(Boolean);
 
-  // 2. Filtrar os eventos customizados da biblioteca (remover empréstimos estáticos e eventos passados)
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const customEvents = calendarEvents.filter(e => {
@@ -101,7 +99,6 @@ export default function Calendar() {
     return true;
   });
 
-  // 3. Unir eventos
   const allEvents = [...loanEvents, ...customEvents];
 
   const goToPrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));

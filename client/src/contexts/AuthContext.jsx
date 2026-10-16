@@ -12,35 +12,50 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    delete api.defaults.headers.Authorization;
 
-    if (!token) {
-      localStorage.removeItem("refreshToken");
-      setUser(null);
-      setLoadingAuth(false);
-      return;
-    }
-
-    api.defaults.headers.Authorization = `Bearer ${token}`;
+    let cancelled = false;
 
     async function loadUser() {
       try {
-        const response = await api.get("/me");
-        setUser({
-          ...response.data,
-          authenticated: true,
-        });
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        delete api.defaults.headers.Authorization;
-        setUser(null);
+        const response = await api.get("/me", { skipAuthRedirect: true });
+        if (!cancelled) {
+          setUser({ ...response.data, authenticated: true });
+        }
+        return;
+      } catch (error) {
+        if (cancelled) return;
+
+        if (error.response?.status !== 401) {
+          setUser(null);
+          return;
+        }
+
+        try {
+          await api.post("/auth/refresh", {}, { skipAuthRedirect: true, __isRetry: true });
+          const response = await api.get("/me", { skipAuthRedirect: true });
+          if (!cancelled) {
+            setUser({ ...response.data, authenticated: true });
+          }
+        } catch {
+          if (!cancelled) {
+            setUser(null);
+          }
+        }
       } finally {
-        setLoadingAuth(false);
+        if (!cancelled) {
+          setLoadingAuth(false);
+        }
       }
     }
 
     loadUser();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function login({ email, password }) {
@@ -49,10 +64,6 @@ export function AuthProvider({ children }) {
     if (data.requireVerification) {
       return data;
     }
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("refreshToken", data.refreshToken);
-    api.defaults.headers.Authorization = `Bearer ${data.token}`;
 
     setUser({
       ...data.usuario,
@@ -69,10 +80,6 @@ export function AuthProvider({ children }) {
       return data;
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("refreshToken", data.refreshToken);
-    api.defaults.headers.Authorization = `Bearer ${data.token}`;
-
     setUser({
       ...data.usuario,
       authenticated: true,
@@ -82,17 +89,11 @@ export function AuthProvider({ children }) {
   }
 
   const logout = useCallback(async () => {
-    const refreshToken = localStorage.getItem("refreshToken");
-
     try {
-      if (refreshToken) {
-        await api.post("/auth/logout", { refreshToken }, { skipAuthRedirect: true });
-      }
+      await api.post("/auth/logout", {}, { skipAuthRedirect: true });
     } catch (error) {
       console.warn("Erro ao encerrar sessão no servidor", error);
     } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
       setUser(null);
       delete api.defaults.headers.Authorization;
     }

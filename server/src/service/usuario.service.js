@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { prisma } from "../../lib/prisma.js";
-import { createAccessToken, createRefreshToken } from "./auth.service.js";
 
 export async function criarUsuario(data, isAdmin = false) {
   const senhaHash = await bcrypt.hash(data.senha, 10);
@@ -14,12 +14,7 @@ export async function criarUsuario(data, isAdmin = false) {
       },
     });
 
-    const token = createAccessToken(usuario);
-    const refreshToken = await createRefreshToken(usuario.id);
-
     return {
-      token,
-      refreshToken,
       usuario: {
         id: usuario.id,
         nome: usuario.nome,
@@ -29,7 +24,7 @@ export async function criarUsuario(data, isAdmin = false) {
     };
   }
 
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code = crypto.randomInt(100000, 1000000).toString();
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
   const usuario = await prisma.usuario.create({
@@ -126,6 +121,10 @@ export async function atualizarUsuario(id, data) {
       dataCadastro: true,
     },
   });
+
+  if (data.senha) {
+    await prisma.refreshToken.deleteMany({ where: { usuarioId: Number(id) } });
+  }
 
   return usuario;
 }

@@ -53,8 +53,7 @@ router.patch('/:id/devolver', autenticar, soBibliotecaria, async (req, res, next
 router.get('/analise-literaria', autenticar, roleMiddleware(['PROFESSOR', 'BIBLIOTECARIA', 'ADMINISTRADOR']), async (req, res, next) => {
   try {
     const filtro = { tipoReserva: 'ANALISE_LITERARIA' }
-    
-    // Se for professor, só vê as que ele solicitou
+
     if (req.usuario.tipoUsuario === 'PROFESSOR') {
       filtro.professorId = req.usuario.id
     }
@@ -88,14 +87,14 @@ router.get('/analise-literaria', autenticar, roleMiddleware(['PROFESSOR', 'BIBLI
     reservas.sort((a, b) => {
       const statusA = a.status
       const statusB = b.status
-      
+
       const scoreA = statusA === 'RETIRADO' ? 1 : (statusA === 'DEVOLVIDO' ? 2 : 3)
       const scoreB = statusB === 'RETIRADO' ? 1 : (statusB === 'DEVOLVIDO' ? 2 : 3)
-      
+
       if (scoreA !== scoreB) {
         return scoreA - scoreB
       }
-      
+
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
       return dateB - dateA

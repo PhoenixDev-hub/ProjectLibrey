@@ -159,8 +159,8 @@ model Configuracao {
 model Evento {
   id        String   @id @default(uuid())
   title     String
-  date      String   // format: YYYY-MM-DD
-  type      String   // type color: 'accent', 'danger', etc.
+  date      String
+  type      String
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("eventos")

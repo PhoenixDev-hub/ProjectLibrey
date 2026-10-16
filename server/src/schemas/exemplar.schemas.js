@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-// SEC-FIX (FIX 4): validação de corpo para /exemplares (VALID-02).
-// status: conjunto fechado usado no sistema (seed + reservaService).
 const statusExemplar = z.enum([
   'DISPONIVEL',
   'RESERVADO',

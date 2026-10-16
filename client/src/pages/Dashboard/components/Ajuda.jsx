@@ -27,25 +27,20 @@ const Ajuda = () => {
   const isDark = theme === 'dark';
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
 
-  // Student UI state
   const [duvidaText, setDuvidaText] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Librarian UI state
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL', 'PENDING', 'RESOLVED'
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const [resolvingId, setResolvingId] = useState(null);
   const [respostaText, setRespostaText] = useState('');
 
   const safeDuvidas = Array.isArray(duvidas) ? duvidas : [];
 
-  // Filter doubts for librarian
   const filteredDuvidas = safeDuvidas.filter(d => {
-    // Status filter
     if (statusFilter === 'PENDING' && d.resolvida) return false;
     if (statusFilter === 'RESOLVED' && !d.resolvida) return false;
 
-    // Search filter
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       const studentName = `${d.usuario?.nome || ''} ${d.usuario?.sobrenome || ''}`.toLowerCase();

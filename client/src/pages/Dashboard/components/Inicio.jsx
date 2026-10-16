@@ -13,7 +13,6 @@ const Inicio = () => {
 
   const acervoStats = (() => {
     const hoje = new Date();
-    // If user is a librarian/admin, keep existing dashboard behavior
     if (isBibliotecaria) {
       const totalEmprestimosReal = safeReservations.filter(r => r.status === 'RETIRADO').length;
       const totalExpiradosReal = safeReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) < hoje).length;
@@ -80,7 +79,6 @@ const Inicio = () => {
       };
     }
 
-    // For students show personal stats: pegou, atrasou, devolveu no prazo, pendentes
     const studentReservations = safeReservations.filter(r => r.usuarioId === user?.id);
     const pegouCount = studentReservations.filter(r => r.status === 'RETIRADO').length;
     const atrasouCount = studentReservations.filter(r => r.status === 'RETIRADO' && r.prazoDevol && new Date(r.prazoDevol) < hoje).length;

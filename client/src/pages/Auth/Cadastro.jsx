@@ -159,7 +159,7 @@ export default function Cadastro() {
 
     try {
       await verifyEmailRequest({ email: form.email, code: verificationCode });
-      navigate("/"); // Redireciona para o login após verificar
+      navigate("/");
     } catch (error) {
       setErrorMessage(getServerMessage(error));
     } finally {

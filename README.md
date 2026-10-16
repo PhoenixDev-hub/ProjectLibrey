@@ -257,11 +257,16 @@ URLs padrão:
 | Configurações | `/configuracoes` |
 | Eventos | `/eventos` |
 
-Rotas protegidas exigem:
+Rotas protegidas aceitam duas formas (mesmo middleware `autenticar`):
 
 ```txt
 Authorization: Bearer <token>
 ```
+
+ou a sessão por cookies httpOnly (`access_token`) definida no login — usada pelo
+front-end, que espelha o cookie `csrf_token` no cabeçalho `X-CSRF-Token` nas
+mutações (double-submit). Desde a SEC-FIX 6 nenhum endpoint devolve
+`token`/`refreshToken` no corpo JSON.
 
 ## Segurança
 

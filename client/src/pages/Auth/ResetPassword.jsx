@@ -1,14 +1,29 @@
 import { AlertCircle, CheckCircle, Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../services/api";
 
 export default function ResetPassword() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const token = searchParams.get("token");
-  const email = searchParams.get("email");
+  const [{ token, email }] = useState(() => {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const search = new URLSearchParams(window.location.search);
+    return {
+      token: hash.get("token") || search.get("token"),
+      email: hash.get("email") || search.get("email"),
+    };
+  });
+
+  useEffect(() => {
+    if (window.location.hash || window.location.search) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname
+      );
+    }
+  }, []);
 
   const [validating, setValidating] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);

@@ -30,8 +30,6 @@ export async function obterConfiguracoes(req, res, next) {
 
 export async function atualizarConfiguracoes(req, res, next) {
   try {
-    // SEC-FIX (FIX 4): corpo validado/coerido pelo atualizarConfiguracoesSchema
-    // (números já convertidos, permitirRenovacao já boolean, strings já trimmadas).
     const { 
       prazoDevolucao, 
       limiteEmprestimos, 
@@ -41,7 +39,6 @@ export async function atualizarConfiguracoes(req, res, next) {
 
     const config = await prisma.configuracao.upsert({
       where: { id: CONFIG_ID },
-      // Campos undefined são ignorados pelo Prisma (atualização parcial).
       update: {
         prazoDevolucao,
         limiteEmprestimos,

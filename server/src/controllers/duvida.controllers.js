@@ -27,7 +27,6 @@ export async function criarDuvida(req, res, next) {
       }
     });
 
-    // Notify all active librarians and administrators
     const bibliotecarias = await prisma.usuario.findMany({
       where: {
         tipoUsuario: { in: ['BIBLIOTECARIA', 'ADMINISTRADOR'] },
@@ -61,7 +60,6 @@ export async function listarDuvidas(req, res, next) {
 
     let duvidas;
     if (ehBibliotecaria) {
-      // Librarians see all doubts
       duvidas = await prisma.duvida.findMany({
         include: {
           usuario: {
@@ -80,7 +78,6 @@ export async function listarDuvidas(req, res, next) {
         ]
       });
     } else {
-      // Students see only their own doubts
       duvidas = await prisma.duvida.findMany({
         where: {
           usuarioId: req.usuario.id,
@@ -120,7 +117,6 @@ export async function resolverDuvida(req, res, next) {
       },
     });
 
-    // Notify the student that their doubt has been handled/responded
     await prisma.notificacao.create({
       data: {
         usuarioId: duvidaExistente.usuarioId,

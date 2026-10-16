@@ -4,7 +4,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import vm from 'node:vm';
 
 const root = new URL('../../', import.meta.url);
-// Load unchanged ESM source with isolated boundary mocks; never connect to a DB/SMTP.
 export async function loadModule(entry, mocks = {}, env = {}) {
   const context = vm.createContext({ process: { env }, console, URL, setTimeout, clearTimeout });
   const cache = new Map();

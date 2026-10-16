@@ -57,7 +57,7 @@ export async function sendPasswordResetEmail(to, token, expiresAt) {
   const t = await initTransporter()
   if (!t) return { info: null, previewUrl: null }
 
-  const resetLink = `${FRONTEND_URL.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`
+  const resetLink = `${FRONTEND_URL.replace(/\/$/, '')}/reset-password#token=${encodeURIComponent(token)}&email=${encodeURIComponent(to)}`
   const expires = expiresAt ? new Date(expiresAt).toLocaleString() : 'em breve'
 
   const subject = 'Redefinição de senha - ProjectLibrary'

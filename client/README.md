@@ -102,11 +102,11 @@ npm run lint
 ## Fluxo de Autenticação
 
 1. O usuário faz login.
-2. O front-end recebe o token da API.
-3. O token é salvo no `localStorage`.
-4. Axios injeta `Authorization: Bearer <token>` nas requisições.
-5. Rotas privadas validam se o usuário está autenticado.
-6. Em logout, o token é removido.
+2. A API responde com `usuario` e define cookies httpOnly (`access_token`, `refresh_token`, `csrf_token`).
+3. Nada é gravado em `localStorage` — o JS nunca lê os tokens (SEC-FIX 6).
+4. Axios envia os cookies (`withCredentials`) e espelha `csrf_token` no cabeçalho `X-CSRF-Token` das mutações.
+5. Em `401`, o interceptor renova a sessão via `POST /auth/refresh` (cookie `refresh_token`) e repete a requisição.
+6. Em logout, o servidor apaga os cookies e o refresh token no banco.
 
 ## Serviços
 

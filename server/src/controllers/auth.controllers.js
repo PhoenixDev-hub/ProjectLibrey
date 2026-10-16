@@ -1,7 +1,12 @@
 import { loginSchema } from "../schemas/auth.schemas.js";
 import { getCurrentUserService, loginService, logoutService, refreshTokenService, verifyEmailService, resendVerificationService } from "../service/auth.service.js";
 import { atualizarUsuario } from "../service/usuario.service.js";
+import { clearAuthCookies, ensureCsrfCookie, setAuthCookies } from "../utils/cookies.js";
 import logger from "../utils/logger.js";
+
+function stripTokens({ token, refreshToken, ...resto }) {
+  return resto;
+}
 
 export async function loginCadastro(req, res, next) {
   try {
@@ -18,9 +23,13 @@ export async function loginCadastro(req, res, next) {
 
     logger.info('Login realizado com sucesso', { email: validatedData.email });
 
-    return res.json(result);
+    if (!result.requireVerification) {
+      setAuthCookies(res, { accessToken: result.token, refreshToken: result.refreshToken });
+      ensureCsrfCookie(req, res);
+    }
+
+    return res.json(stripTokens(result));
   } catch (error) {
-    // SEC-FIX (FIX 3): não logar email em falha de login (enumeração + PII).
     logger.warn('Tentativa de login falhada', { reason: error.code || 'INVALID_CREDENTIALS' });
     next(error);
   }
@@ -40,10 +49,13 @@ export async function getCurrentUser(req, res, next) {
 
 export async function refreshTokenController(req, res, next) {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refresh_token || req.body?.refreshToken;
     const result = await refreshTokenService(refreshToken);
 
-    return res.json(result);
+    setAuthCookies(res, { accessToken: result.token, refreshToken: result.refreshToken });
+    ensureCsrfCookie(req, res);
+
+    return res.json({ success: true });
   } catch (error) {
     next(error);
   }
@@ -51,9 +63,10 @@ export async function refreshTokenController(req, res, next) {
 
 export async function logoutController(req, res, next) {
   try {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies?.refresh_token || req.body?.refreshToken;
     await logoutService(refreshToken);
 
+    clearAuthCookies(res);
     return res.status(204).send();
   } catch (error) {
     next(error);
@@ -79,7 +92,13 @@ export async function verifyEmailController(req, res, next) {
   try {
     const { email, code } = req.body;
     const result = await verifyEmailService(email, code);
-    return res.json(result);
+
+    if (result.token) {
+      setAuthCookies(res, { accessToken: result.token, refreshToken: result.refreshToken });
+      ensureCsrfCookie(req, res);
+    }
+
+    return res.json(stripTokens(result));
   } catch (error) {
     next(error);
   }

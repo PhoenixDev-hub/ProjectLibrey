@@ -14,7 +14,6 @@ export async function requestPasswordReset(email) {
 
 
     if (!usuario) {
-      // SEC-FIX (FIX 3): não logar email em conta inexistente (enumeração + PII).
       logger.warn('Tentativa de reset com email inexistente')
       return {
         message: "Se a conta existir, você receberá instruções por e-mail.",
@@ -97,7 +96,6 @@ export async function resetPassword(token, email, novaSenha) {
     })
 
     if (!usuario) {
-      // SEC-FIX (FIX 3): não logar email em conta inexistente (enumeração + PII).
       logger.warn('Tentativa de reset com email inexistente')
       throw new Error("Email ou token inválido")
     }
@@ -139,6 +137,9 @@ export async function resetPassword(token, email, novaSenha) {
       prisma.passwordReset.update({
         where: { id: passwordReset.id },
         data: { usedAt: new Date() },
+      }),
+      prisma.refreshToken.deleteMany({
+        where: { usuarioId: usuario.id },
       }),
     ])
 

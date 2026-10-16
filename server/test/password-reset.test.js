@@ -19,7 +19,10 @@ for (const environment of ['development', 'test', 'production', undefined]) {
     const { default: router } = await loadModule('src/routes/password-reset.routes.js', {
       'lib/prisma.js': { prisma },
       'src/utils/logger.js': { default: Object.fromEntries(['info', 'warn', 'error', 'debug'].map(k => [k, (...args) => logs.push(args)])) },
-      'src/middlewares/rate-limit.middleware.js': { generalLimiter: (_req, _res, next) => next() },
+      'src/middlewares/rate-limit.middleware.js': {
+        generalLimiter: (_req, _res, next) => next(),
+        resetLimiter: (_req, _res, next) => next(),
+      },
       nodemailer: { default: {
         createTransport: () => ({ sendMail: async mail => {
           if (failMail) throw new Error('SMTP unavailable');
@@ -36,7 +39,10 @@ for (const environment of ['development', 'test', 'production', undefined]) {
       assert.deepEqual(response, { status: 200, body: { message } });
     }
     assert.equal(emails.length, 2);
-    const token = new URL(emails[0].text.match(/http:\/\/\S+/)[0]).searchParams.get('token');
+    const link = emails[0].text.match(/http:\/\/\S+/)[0];
+    assert(link.includes('#token='));
+    assert(!link.includes('?token='));
+    const token = new URLSearchParams(new URL(link).hash.slice(1)).get('token');
     assert.equal(await bcrypt.compare(token, rows[0].token), true);
     assert(!JSON.stringify(logs).includes(token));
     assert(!JSON.stringify(logs).includes('https://preview.example.invalid/secret'));

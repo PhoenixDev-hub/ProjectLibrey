@@ -111,3 +111,19 @@ export const createUsuarioAdminSchema = withUsuarioRules(
       ),
   })
 );
+
+export const atualizarClassificacaoSchema = z.object({
+  tipoUsuario: z
+    .string()
+    .transform((v) => v.toUpperCase().trim())
+    .refine(
+      (v) => ["ALUNO", "PROFESSOR", "BIBLIOTECARIA", "ADMINISTRADOR"].includes(v),
+      "Tipo de usuário inválido"
+    )
+    .optional(),
+  status: z
+    .string()
+    .transform((v) => v.toUpperCase().trim())
+    .refine((v) => ["ATIVO", "INATIVO"].includes(v), "Status inválido")
+    .optional(),
+});

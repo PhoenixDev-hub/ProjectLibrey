@@ -18,10 +18,9 @@ const Configuracoes = () => {
   const isDark = theme === 'dark';
   const ehBibliotecaria = ['BIBLIOTECARIA', 'ADMINISTRADOR'].includes(user?.tipoUsuario);
 
-  const [activeTab, setActiveTab] = useState('perfil'); // 'perfil' | 'biblioteca'
+  const [activeTab, setActiveTab] = useState('perfil');
   const [submitting, setSubmitting] = useState(false);
 
-  // Profile Form States
   const [perfilForm, setPerfilForm] = useState({
     nome: '',
     sobrenome: '',
@@ -29,7 +28,6 @@ const Configuracoes = () => {
     telefone: ''
   });
 
-  // Library Config Form States
   const [configForm, setConfigForm] = useState({
     nomeBiblioteca: '',
     prazoDevolucao: 30,
@@ -37,7 +35,6 @@ const Configuracoes = () => {
     permitirRenovacao: true
   });
 
-  // Initialize Profile Form
   useEffect(() => {
     if (user) {
       setPerfilForm({
@@ -49,7 +46,6 @@ const Configuracoes = () => {
     }
   }, [user]);
 
-  // Initialize Library Config Form
   useEffect(() => {
     if (libraryConfig) {
       setConfigForm({
@@ -65,7 +61,6 @@ const Configuracoes = () => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      // Directly call context handler passing the event
       await handleUpdateProfile(e);
     } catch (err) {
       console.error(err);

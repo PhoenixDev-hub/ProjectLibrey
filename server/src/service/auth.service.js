@@ -201,7 +201,7 @@ export async function resendVerificationService(email) {
     throw new Error("E-mail já está verificado")
   }
 
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code = crypto.randomInt(100000, 1000000).toString();
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
   await prisma.usuario.update({

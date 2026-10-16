@@ -12,7 +12,7 @@ const AnaliseLiteraria = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [data, setData] = useState([]);
-  const [activeTab, setActiveTab] = useState('retirado'); // 'retirado' | 'devolvido'
+  const [activeTab, setActiveTab] = useState('retirado');
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchData = async () => {
@@ -39,7 +39,6 @@ const AnaliseLiteraria = () => {
 
   const safeData = Array.isArray(data) ? data : [];
 
-  // Filter based on active tab
   const tabFiltered = safeData.filter(item => {
     if (activeTab === 'retirado') {
       return item.status === 'RETIRADO' || item.status === 'PENDENTE' || item.status === 'APROVADO';
@@ -48,7 +47,6 @@ const AnaliseLiteraria = () => {
     }
   });
 
-  // Filter based on search term
   const searchFiltered = tabFiltered.filter(item => {
     const term = searchTerm.toLowerCase();
     const studentName = `${item.usuario?.nome || ''} ${item.usuario?.sobrenome || ''}`.toLowerCase();
@@ -57,7 +55,6 @@ const AnaliseLiteraria = () => {
     return studentName.includes(term) || bookTitle.includes(term) || bookAuthor.includes(term);
   });
 
-  // Stats calculation
   const totalRetirados = safeData.filter(item => item.status === 'RETIRADO').length;
   const totalDevolvidos = safeData.filter(item => item.status === 'DEVOLVIDO').length;
 

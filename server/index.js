@@ -1,4 +1,5 @@
 import cors from "cors"
+import cookieParser from "cookie-parser"
 import "dotenv/config"
 import express from "express"
 import helmet from "helmet"
@@ -25,17 +26,10 @@ import logger from "./src/utils/logger.js"
 const config = initConfig()
 const app = express()
 
-// SEC-FIX (FIX 1): IP real atrás de proxy reverso/exata.
-// TRUST_PROXY_HOPS = número de hops entre o client e o Express.
-// Ex.: 1 = um proxy (nginx/ALB); 0 = sem proxy (default seguro).
 app.set('trust proxy', Number(process.env.TRUST_PROXY_HOPS ?? 1))
 
-// SEC-FIX (FIX 2): expor cabeçalhos de rate limit ao browser (CORS).
 app.disable('x-powered-by')
 
-// SEC-FIX (FIX 2): security headers (Helmet + CSP).
-// Nota: aplicados em respostas da API; se o client for servido pelo mesmo
-// origin (nginx), configure CSP equivalente no bloco de assets do proxy.
 const isProd = config.server.nodeEnv === 'production'
 app.use(helmet({
   contentSecurityPolicy: {
@@ -57,7 +51,6 @@ app.use(helmet({
   crossOriginOpenerPolicy: { policy: 'same-origin' },
   crossOriginResourcePolicy: { policy: 'same-site' },
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-  // HSTS apenas em produção (não faz sentido em http://localhost).
   ...(isProd
     ? { hsts: { maxAge: 31536000, includeSubDomains: true, preload: true } }
     : { hsts: false }),
@@ -66,8 +59,6 @@ app.use(helmet({
   xssFilter: true,
 }))
 
-// SEC-FIX (FIX 2): CORS restritivo — origin validado contra allowlist.
-// Requisições sem header Origin (curl, server-to-server) são permitidas.
 const allowedOrigins = config.cors.origin
 app.use(cors({
   origin: (origin, callback) => {
@@ -94,7 +85,8 @@ app.use(cors({
 
 app.use(express.json())
 
-// SEC-FIX (FIX 1): fallback global de rate limit, ANTES das rotas para cobrir
+app.use(cookieParser())
+
 app.use(generalLimiter)
 
 
@@ -140,7 +132,6 @@ app.get("/health", (req, res) => {
   })
 })
 
-// SEC-FIX (FIX 1): o generalLimiter já é aplicado globalmente antes das rotas.
 app.use(errorHandler)
 
 
