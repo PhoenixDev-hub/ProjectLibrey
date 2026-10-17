@@ -1,6 +1,6 @@
-# Sistema da Biblioteca
+# ProjectLibrey
 
-Sistema web para gerenciamento de biblioteca escolar/acadêmica, com catálogo digital, reservas, empréstimos, leitores, notificações, dúvidas e configurações administrativas.
+Sistema web para gerenciamento de biblioteca escolar/acadêmica, com catálogo digital, reservas, empréstimos, leitores, notificações, dúvidas, eventos e configurações administrativas.
 
 O projeto é dividido em duas aplicações independentes:
 
@@ -9,43 +9,57 @@ O projeto é dividido em duas aplicações independentes:
 
 ## Visão Geral
 
-ProjectLibrey foi criado para substituir controles manuais de biblioteca por um fluxo digital mais rastreável. A aplicação permite que alunos e professores consultem livros, solicitem reservas e acompanhem prazos, enquanto bibliotecários administram acervo, leitores, reservas, empréstimos e configurações.
+ProjectLibrey foi criado para substituir controles manuais de biblioteca por um fluxo digital mais rastreável. Alunos e professores consultam o acervo, solicitam reservas e acompanham prazos; a bibliotecária administra livros, exemplares, leitores, reservas, empréstimos, eventos e configurações. Um cron diário monitora prazos de devolução e gera notificações de vencimento e atraso.
+
+## Perfis de Usuário
+
+O sistema possui quatro perfis (`tipoUsuario`), definidos no cadastro e usados como base de toda autorização:
+
+| Perfil | Código | O que pode fazer |
+|---|---|---|
+| Aluno | `ALUNO` | Consultar o catálogo, favoritar livros, solicitar reservas (Leitura Pessoal), acompanhar empréstimos/reservas e usar a central de ajuda |
+| Professor | `PROFESSOR` | Consultar o catálogo e acompanhar, na aba Análise Literária, as reservas que o indicam como professor (criadas pelo aluno no catálogo) |
+| Bibliotecária | `BIBLIOTECARIA` | Tudo: gerenciar livros, exemplares, leitores, reservas/aprovação/retirada/devolução, notificações, dúvidas, eventos e configurações |
+| Administrador | `ADMINISTRADOR` | Mesmas permissões da bibliotecária |
+
+Observações:
+
+- Todo usuário tem um `status` (`ATIVO` ou `INATIVO`). Usuários inativos não conseguem logar nem usar a API autenticada.
+- O cadastro público (`/cadastro`) é autorizado apenas para Aluno e Professor; leitores cadastrados pela bibliotecária recebem o perfil desejado pela administração.
+- Regras de validação: Aluno precisa informar `anoSala` (formato `1A`–`3D`) e usar e-mail de domínio público permitido; Professor, Bibliotecária e Administrador exigem e-mail institucional (domínio `.ce.gov.br`).
+- As permissões são aplicadas no back-end (`roleMiddleware` / `soBibliotecaria`) e espelhadas no front-end, que filtra as abas do dashboard por perfil.
 
 ## Principais Funcionalidades
 
 ### Usuários
 
-- Cadastro e login com autenticação JWT.
-- Perfis de acesso para aluno, professor, bibliotecária e administrador.
-- Atualização de dados de perfil.
-- Verificação de e-mail no cadastro.
-- Recuperação de senha por e-mail.
+- Cadastro e login com autenticação JWT (cookies httpOnly + CSRF).
+- Verificação de e-mail por código de 6 dígitos no cadastro (validade de 15 minutos, com reenvio).
+- Recuperação de senha por e-mail (token de uso único, expira em 1 hora).
+- Atualização de dados de perfil (`/me`).
+- Controle de status de usuários pela administração.
 
 ### Catálogo
 
-- Listagem de livros do acervo.
-- Busca por título, autor e área.
-- Exibição de capas por busca externa quando o livro não possui imagem cadastrada.
-- Favoritos para alunos.
-- Detalhes do livro em modal.
+- Listagem de livros e exemplares do acervo (com busca por título, autor e área).
+- Capas buscadas em serviços externos (Open Library e Google Books) quando o livro não possui imagem cadastrada, com cache local no navegador.
+- Favoritos para alunos (guardados localmente no navegador).
+- Detalhes do livro em modal e reserva rápida.
 
 ### Reservas e Empréstimos
 
-- Solicitação de reserva por alunos/professores.
-- Tipos de reserva (Leitura Pessoal e Análise Literária para professores).
-- Criação de reserva para leitores pela bibliotecária.
-- Aprovação e rejeição de reservas.
-- Registro de retirada e devolução.
-- Controle de prazos e atrasos.
+- Solicitação de reserva por alunos (Leitura Pessoal) e reservas de Análise Literária, em que o usuário indica um professor (o professor acompanha pelo painel de Análise Literária).
+- Aprovação e rejeição de reservas pela bibliotecária.
+- Registro de retirada (define o prazo de devolução) e de devolução.
+- Limite de reservas/empréstimos ativos simultâneos configurável e regra de uma reserva ativa por título.
+- Notificações automáticas em cada etapa e monitoramento de prazos por cron.
 
 ### Administração
 
-- Cadastro e edição de livros.
-- Cadastro e edição de leitores.
-- Controle de status de usuários.
-- Configurações da biblioteca.
-- Central de dúvidas.
-- Notificações internas.
+- Cadastro, edição e exclusão de livros e exemplares.
+- Cadastro, edição e ativação/inativação de leitores.
+- Gestão de notificações internas e central de dúvidas (com resposta).
+- Eventos da biblioteca e configurações (prazo de devolução, limite de empréstimos, renovação, nome da biblioteca).
 
 ## Stack Técnica
 
@@ -57,6 +71,7 @@ ProjectLibrey foi criado para substituir controles manuais de biblioteca por um 
 - Tailwind CSS
 - Axios
 - Lucide React
+- JWT Decode
 
 Documentação específica: [client/README.md](client/README.md)
 
@@ -69,8 +84,9 @@ Documentação específica: [client/README.md](client/README.md)
 - JWT
 - bcrypt
 - Zod
-- Nodemailer
-- Winston
+- Nodemailer (com Ethereal em desenvolvimento)
+- Winston (logs com rotação e redação)
+- node-cron
 
 Documentação específica: [server/README.md](server/README.md)
 
@@ -81,9 +97,14 @@ ProjectLibrey/
 ├── client/
 │   ├── src/
 │   │   ├── components/
+│   │   │   └── layout/
+│   │   ├── constants/
 │   │   ├── contexts/
 │   │   ├── hooks/
 │   │   ├── pages/
+│   │   │   ├── Auth/
+│   │   │   └── Dashboard/
+│   │   │       └── components/
 │   │   ├── routes/
 │   │   ├── services/
 │   │   └── styles/
@@ -106,8 +127,10 @@ ProjectLibrey/
 │   │   ├── schemas/
 │   │   ├── service/
 │   │   └── utils/
+│   ├── test/
 │   ├── index.js
-│   └── package.json
+│   ├── package.json
+│   └── prisma.config.ts
 │
 ├── Livros.csv
 ├── docker-compose.yml
@@ -121,7 +144,7 @@ ProjectLibrey/
 - PostgreSQL
 - Git
 
-Docker Compose existe no repositório, mas os Dockerfiles de `client/` e `server/` não estão presentes atualmente. Para desenvolvimento, use a execução local descrita abaixo.
+Existe um `docker-compose.yml` na raiz que sobe apenas o PostgreSQL local. Os Dockerfiles de `client/` e `server/` não estão presentes no repositório; para desenvolvimento, use a execução local descrita abaixo.
 
 ## Configuração Rápida
 
@@ -138,23 +161,32 @@ npm install
 cp .env.example .env
 ```
 
-Edite `server/.env`:
+Edite `server/.env`. Variáveis reconhecidas pela aplicação:
+
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `JWT_SECRET` | Sim | Segredo do JWT (mínimo 32 bytes aleatórios; gere com `openssl rand -hex 32`) |
+| `DATABASE_URL` | Sim | URL de conexão do PostgreSQL |
+| `PORT` | Não (padrão `3333`) | Porta da API |
+| `NODE_ENV` | Não (padrão `development`) | `development` ou `production` |
+| `CORS_ORIGIN` | Não | Origens permitidas, separadas por vírgula (padrão: `http://localhost:5173,http://localhost:3000`) |
+| `FRONTEND_URL` | Não (padrão `http://localhost:5173`) | Base usada nos links de e-mail (reset de senha) |
+| `LOG_LEVEL` | Não (padrão `info`) | Nível de log do Winston |
+| `TRUST_PROXY_HOPS` | Não (padrão `1`) | Hops de proxy confiáveis (0 se exposto direto) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | Obrigatórias em produção | Configuração de e-mail. Em desenvolvimento, se vazias, o sistema usa Ethereal automaticamente |
+
+Exemplo mínimo para desenvolvimento:
 
 ```env
 NODE_ENV=development
 PORT=3333
+JWT_SECRET=cole-aqui-um-segredo-aleatorio-forte
 DATABASE_URL=postgresql://postgres:SUBSTITUA_PELA_SENHA_URL_ENCODED@localhost:5432/project_library
-DB_USER=postgres
-DB_PASSWORD=SUBSTITUA_POR_UMA_SENHA_LOCAL_FORTE
-JWT_SECRET=SUBSTITUA_POR_UM_SEGREDO_ALEATORIO_FORTE
-FRONTEND_URL=http://localhost:5173
 CORS_ORIGIN=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
-`DATABASE_URL` é obrigatória tanto para a API quanto para os comandos Prisma.
-Substitua os placeholders; use o mesmo usuário e senha em `DATABASE_URL` e
-`DB_USER`/`DB_PASSWORD`, codificando caracteres especiais da senha na URL.
-Não versione o arquivo `.env` preenchido.
+`DATABASE_URL` é obrigatória tanto para a API quanto para os comandos Prisma. Substitua os placeholders e não versione o arquivo `.env` preenchido.
 
 Para iniciar somente o PostgreSQL local, execute **na raiz do repositório**:
 
@@ -162,10 +194,7 @@ Para iniciar somente o PostgreSQL local, execute **na raiz do repositório**:
 docker compose --env-file server/.env up -d postgres
 ```
 
-O Compose exige `DB_PASSWORD` não vazia e publica a porta apenas em
-`127.0.0.1:5432`. `DB_USER` é opcional (padrão `postgres`). O banco criado se
-chama `project_library`. Alterar essas variáveis não troca as credenciais de
-um volume já inicializado; nesse caso, altere a senha no próprio PostgreSQL.
+O Compose exige `DB_PASSWORD` não vazia (adicione também ao `server/.env`) e publica a porta apenas em `127.0.0.1:5432`. `DB_USER` é opcional (padrão `postgres`). O banco criado se chama `project_library`. Alterar essas variáveis não troca as credenciais de um volume já inicializado; nesse caso, altere a senha no próprio PostgreSQL.
 
 ### 3. Preparar banco de dados
 
@@ -176,11 +205,13 @@ npx prisma generate
 npx prisma migrate dev
 ```
 
-Opcionalmente, importe livros do CSV:
+Opcionalmente, importe o acervo do CSV e crie usuários de teste:
 
 ```bash
 npm run prisma:seed
 ```
+
+> Atenção: o seed **apaga** livros, exemplares, reservas, notificações e os usuários de teste antes de recriá-los. Detalhes em [server/README.md](server/README.md).
 
 ### 4. Instalar dependências do front-end
 
@@ -238,15 +269,16 @@ URLs padrão:
 |---|---|
 | `npm run start:dev` | Inicia a API com Nodemon |
 | `npm start` | Inicia a API com Node |
+| `npm test` | Executa os testes com o runner nativo do Node |
 | `npm run prisma:generate` | Gera o Prisma Client |
 | `npm run prisma:migrate` | Executa migrations em desenvolvimento |
-| `npm run prisma:seed` | Importa dados do seed |
+| `npm run prisma:seed` | Importa o acervo do CSV e cria usuários de teste |
 
 ## Rotas Principais da API
 
 | Grupo | Rotas |
 |---|---|
-| Autenticação | `/login`, `/cadastro`, `/me` |
+| Autenticação | `/login`, `/cadastro`, `/me`, `/verificar-email`, `/reenviar-verificacao`, `/auth/refresh`, `/auth/logout` |
 | Recuperação de senha | `/password-reset` |
 | Livros | `/livros` |
 | Exemplares | `/exemplares` |
@@ -257,33 +289,37 @@ URLs padrão:
 | Configurações | `/configuracoes` |
 | Eventos | `/eventos` |
 
+A tabela completa de rotas, níveis de acesso e perfis permitidos está em [server/README.md](server/README.md).
+
 Rotas protegidas aceitam duas formas (mesmo middleware `autenticar`):
 
 ```txt
 Authorization: Bearer <token>
 ```
 
-ou a sessão por cookies httpOnly (`access_token`) definida no login — usada pelo
-front-end, que espelha o cookie `csrf_token` no cabeçalho `X-CSRF-Token` nas
-mutações (double-submit). Desde a SEC-FIX 6 nenhum endpoint devolve
-`token`/`refreshToken` no corpo JSON.
+ou a sessão por cookies httpOnly (`access_token`) definida no login — usada pelo front-end, que espelha o cookie legível `csrf_token` no cabeçalho `X-CSRF-Token` nas mutações (double-submit). Nenhum endpoint devolve `token`/`refreshToken` no corpo JSON.
 
 ## Segurança
 
 - Senhas criptografadas com bcrypt.
-- Autenticação via JWT.
-- Rate limiting em rotas sensíveis.
-- CORS configurável por ambiente.
-- Validação de entradas com schemas.
-- Recuperação de senha com token de uso único.
+- Sessão com access token JWT de curta duração (15 min) em cookie httpOnly e refresh token opaco de 7 dias, armazenado no banco e rotacionado a cada renovação.
+- Proteção CSRF por double-submit do cookie `csrf_token` em requisições mutantes.
+- Rate limiting global e específico (login, cadastro, verificação de e-mail e reset de senha).
+- Helmet com Content Security Policy restritiva e HSTS em produção.
+- CORS configurável por origem permitida.
+- Validação de entradas com schemas Zod.
+- Recuperação de senha com token armazenado em hash, uso único e expiração de 1 hora; respostas genéricas para evitar enumeração de usuários.
+- Logs com redação automática de dados sensíveis (senhas, tokens, e-mails, telefones, CPF).
 
 ## Observações de Desenvolvimento
 
-- O front-end consome a URL definida em `VITE_API_URL`.
-- O back-end libera origins definidas em `CORS_ORIGIN`.
-- As capas do catálogo são buscadas por título/autor em serviços externos e armazenadas em cache local do navegador.
-- Logs do back-end ficam em `server/logs/`.
+- O front-end consome a URL definida em `VITE_API_URL` (padrão `http://localhost:3333`).
+- O back-end libera as origins definidas em `CORS_ORIGIN`.
+- As capas do catálogo são buscadas por título/autor no Open Library e Google Books e armazenadas em cache local do navegador.
+- O cron de prazos roda todo dia às 08h e notifica o leitor (vencimento/atraso) e a bibliotecária (atrasos).
+- Logs do back-end ficam em `server/logs/` (arquivos rotacionados por dia).
 - As migrations ficam em `server/prisma/migrations/`.
+- Existem usuários de teste criados pelo seed (senha `Senha123`): `admin@librey.com`, `bibliotecaria@librey.com`, `professor@librey.com`, `aluno@librey.com`.
 
 ## Solução de Problemas
 
@@ -309,7 +345,7 @@ npm run prisma:generate
 
 ### Erro de conexão com PostgreSQL
 
-Verifique se o banco está rodando e se `DATABASE_URL` está correta.
+Verifique se o banco está rodando (`docker compose --env-file server/.env up -d postgres`) e se `DATABASE_URL` está correta.
 
 ## Status
 
